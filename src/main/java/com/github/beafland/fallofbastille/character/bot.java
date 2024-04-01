@@ -5,21 +5,21 @@ import javafx.scene.image.Image;
 
 import java.util.Objects;
 
-public class Player {
-    private static final int WIDTH = 120;
-    private static final int HEIGHT = 150;
+public class bot {
+    private static final int WIDTH = 80;
+    private static final int HEIGHT = 100;
     //初始化角色图片，不知道为什么一定要这么写要不然找不到图片
-    private static final Image playerStandImage = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/mechanician.png")));
-    private static final Image playerMoveImage = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/mechanicianMove.gif")));
-    private static final Image gunFire = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/gunFire.png")));
-    private static final int attackRange = 50;
+    private static final Image playerStandImage = new Image(Objects.requireNonNull(bot.class.getResourceAsStream("/images/mechanician.png")));
+    private static final Image playerMoveImage = new Image(Objects.requireNonNull(bot.class.getResourceAsStream("/images/mechanicianMove.gif")));
+    private static final Image gunFire = new Image(Objects.requireNonNull(bot.class.getResourceAsStream("/images/gunFire.png")));
+    private static final int attackRange = 20;
     public boolean facingLeft = false;
     public boolean isFire = false;
     private Image playerCurrImage;
     private double x;
     private double y;
 
-    public Player(int x, int y) {
+    public bot(int x, int y) {
         this.x = x;
         this.y = y - HEIGHT / 2;
         this.playerCurrImage = playerStandImage;
@@ -51,10 +51,10 @@ public class Player {
                 gc.save(); // 保存当前画布状态
                 gc.translate(x + WIDTH / 2, y + HEIGHT / 2); // 将绘制起点移动到攻击位置
                 gc.scale(-1, 1); // 水平翻转
-                gc.drawImage(gunFire, -WIDTH * 1.15, -attackRange / 2.2, 75, attackRange); // 从新的原点绘制
+                gc.drawImage(gunFire, -WIDTH * 1.2, -attackRange / 2, 50, attackRange); // 从新的原点绘制
                 gc.restore(); // 恢复画布状态到最近的保存点
             } else {
-                gc.drawImage(gunFire, x - WIDTH / 1.5, y + HEIGHT / 2.4, 75, attackRange);
+                gc.drawImage(gunFire, x - WIDTH / 1.5, y + HEIGHT / 2.4, 50, attackRange);
             }
         }
     }

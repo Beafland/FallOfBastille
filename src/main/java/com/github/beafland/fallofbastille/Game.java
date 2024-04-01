@@ -14,8 +14,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Game extends Application {
-    public static final int HEIGHT = 600;
-    public static final int WIDTH = 800;
+    public static final int WIDTH = 1280;
+    public static final int HEIGHT = 800;
 
     public static Player player;
     public static PlayerController playerController;
