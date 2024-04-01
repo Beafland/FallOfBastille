@@ -5,4 +5,6 @@ module com.github.beafland.fallofbastille {
 
     opens com.github.beafland.fallofbastille to javafx.fxml;
     exports com.github.beafland.fallofbastille;
+    exports com.github.beafland.fallofbastille.character;
+    opens com.github.beafland.fallofbastille.character to javafx.fxml;
 }
