@@ -2,8 +2,10 @@ package com.github.beafland.fallofbastille;
 
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 
+import java.util.Objects;
 import java.util.Set;
 
 import static com.github.beafland.fallofbastille.Game.player;
@@ -12,6 +14,9 @@ import static com.github.beafland.fallofbastille.Game.playerController;
 public class AnimationLoop extends AnimationTimer {
     private final GraphicsContext gc;
     private final Set<KeyCode> keysPressed;
+    private final Image backgroundImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/Environment/background.png")));
+    private final Image leftHouseImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/Environment/leftHouse.png")));
+    private final Image rightHouseImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/Environment/rightHouse.png")));
 
     public AnimationLoop(GraphicsContext gc, Set<KeyCode> keysPressed) {
         this.gc = gc;
@@ -22,6 +27,9 @@ public class AnimationLoop extends AnimationTimer {
     public void handle(long now) {
         // 清除画布
         gc.clearRect(0, 0, Game.WIDTH, Game.HEIGHT);
+        gc.drawImage(backgroundImage, 0, 0, Game.WIDTH, Game.HEIGHT);
+        gc.drawImage(leftHouseImage, 0, 580, 550, 300);
+        gc.drawImage(rightHouseImage, 1100, 100);
 
         // 根据按键状态更新游戏状态
         playerController.update(keysPressed);

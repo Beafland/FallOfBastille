@@ -9,21 +9,22 @@ import javafx.util.Duration;
 import java.util.Set;
 
 public class PlayerController {
-    private static final int SPEED = 4;
+    private static final int SPEED = 5;
     private static final double LERP_SPEED = 0.1;
+    private static final double GRAVITY = 0.5;
+    private static final int JUMP_FORCE = 20;
     private final Player player;
     private final Timeline attackTimeline;
     private final Timeline fireTimeline;
-    private double targetX; // 目标X位置
-    private double targetY; // 目标Y位置
+    private double yVelocity;
+    private int JumpingChange = 2;
     private boolean isAttack = false;
 
     public PlayerController(Player player) {
         this.player = player;
-        this.targetX = player.getX();
-        this.targetY = player.getY();
+        this.yVelocity = 0;
 
-        fireTimeline = new Timeline(new KeyFrame(Duration.seconds(0.2), e -> player.isFire = false));
+        fireTimeline = new Timeline(new KeyFrame(Duration.seconds(0.05), e -> player.isFire = false));
         attackTimeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> isAttack = false));
         attackTimeline.setCycleCount(Timeline.INDEFINITE);
         fireTimeline.setCycleCount(Timeline.INDEFINITE);
@@ -40,16 +41,50 @@ public class PlayerController {
                     moveRight();
                     player.facingLeft = false;
                 }
-                case UP -> moveUp();
-                case DOWN -> moveDown();
-
                 case SPACE -> fire();
             }
         }
 
-        player.setMovement(targetY - player.getY() + targetX - player.getX() != 0);
-        player.setX(targetX + (targetX - player.getX()) * LERP_SPEED);
-        player.setY(targetY + (targetY - player.getY()) * LERP_SPEED);
+        player.setMovement(keysPressed);
+
+        // 应用重力
+        yVelocity += GRAVITY;
+        player.setY(player.getY() + yVelocity);
+
+        // 地面碰撞检测
+        if (player.getY() + Player.HEIGHT > Game.HEIGHT) {
+            player.setY(Game.HEIGHT - Player.HEIGHT);
+            yVelocity = 0;
+            JumpingChange = 2;
+        }
+
+        // 平台碰撞检测
+        int leftPlatformTopY = 650;
+        int leftPlatformStartX = 0;
+        int leftPlatformEndX = 500;
+        int rightPlatformTopY = 380;
+        int rightPlatformStartX = 1200;
+        int rightPlatformEndX = 2000;
+
+    // 检测玩家是否在平台的横向范围内
+        if(yVelocity > 0) {
+            if (player.getX() >= leftPlatformStartX && player.getX() <= leftPlatformEndX) {
+                // 检测玩家是否触碰到平台的顶部
+                if (player.getY() + Player.HEIGHT >= leftPlatformTopY && player.getY() + Player.HEIGHT - yVelocity <= leftPlatformTopY) { // 10为假定的厚度
+                    player.setY(leftPlatformTopY - Player.HEIGHT);
+                    yVelocity = 0;
+                    JumpingChange = 2;
+                }
+            } else if (player.getX() >= rightPlatformStartX && player.getX() <= rightPlatformEndX) {
+                // 检测玩家是否触碰到平台的顶部
+                if (player.getY() + Player.HEIGHT >= rightPlatformTopY && player.getY() + Player.HEIGHT - yVelocity <= rightPlatformTopY) { // 10为假定的厚度
+                    player.setY(rightPlatformTopY - Player.HEIGHT);
+                    yVelocity = 0;
+                    JumpingChange = 2;
+                }
+            }
+        }
+
     }
 
     public void fire() {
@@ -63,30 +98,21 @@ public class PlayerController {
     }
 
     public void moveLeft() {
-        targetX -= SPEED;
-        if (targetX < 0) {
-            targetX = 0;
+        player.setX(player.getX()-SPEED);
+        if (player.getX() < 0) {
+            player.setX(0);
         }
     }
 
     public void moveRight() {
-        targetX += SPEED;
-        if (targetX + Player.getWIDTH() > Game.WIDTH) {
-            targetX = Game.WIDTH - Player.getWIDTH();
+        player.setX(player.getX()+SPEED);
+        if (player.getX() + Player.getWIDTH() > Game.WIDTH) {
+            player.setX(Game.WIDTH - Player.getWIDTH());
         }
     }
 
-    public void moveDown() {
-        targetY += SPEED;
-        if (targetY + Player.getHEIGHT() > Game.HEIGHT) {
-            targetY = Game.HEIGHT - Player.getHEIGHT();
-        }
-    }
-
-    public void moveUp() {
-        targetY -= SPEED;
-        if (targetY < 0) {
-            targetY = 0;
-        }
+    public void Jump() {
+        if(JumpingChange-- > 0)
+            yVelocity = -1 * JUMP_FORCE;
     }
 }

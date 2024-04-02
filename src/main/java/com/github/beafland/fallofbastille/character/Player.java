@@ -2,26 +2,33 @@ package com.github.beafland.fallofbastille.character;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
 
 import java.util.Objects;
+import java.util.Set;
 
 public class Player {
-    private static final int WIDTH = 120;
-    private static final int HEIGHT = 150;
+    public static final int WIDTH = 120;
+    public static final int HEIGHT = WIDTH / 4 * 5;
     //初始化角色图片，不知道为什么一定要这么写要不然找不到图片
-    private static final Image playerStandImage = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/mechanician.png")));
-    private static final Image playerMoveImage = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/mechanicianMove.gif")));
-    private static final Image gunFire = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/gunFire.png")));
-    private static final int attackRange = 50;
+    private static final Image playerStandImage = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/mechan/mechanician.png")));
+    private static final Image playerMoveImage = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/mechan/mechanicianMove.gif")));
+    private static final Image playerJumpImage = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/mechan/mechanicianJump.gif")));
+    private static final Image gunFire = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/mechan/gunFire.png")));
+    private static final int attackRange = 150;
     public boolean facingLeft = false;
     public boolean isFire = false;
     private Image playerCurrImage;
+
     private double x;
     private double y;
 
-    public Player(int x, int y) {
+    private int health;
+
+    public Player(int x, int y, int health) {
         this.x = x;
         this.y = y - HEIGHT / 2;
+        this.health = health;
         this.playerCurrImage = playerStandImage;
     }
 
@@ -51,16 +58,18 @@ public class Player {
                 gc.save(); // 保存当前画布状态
                 gc.translate(x + WIDTH / 2, y + HEIGHT / 2); // 将绘制起点移动到攻击位置
                 gc.scale(-1, 1); // 水平翻转
-                gc.drawImage(gunFire, -WIDTH * 1.15, -attackRange / 2.2, 75, attackRange); // 从新的原点绘制
+                gc.drawImage(gunFire, 0, 0, attackRange, 75); // 从新的原点绘制
                 gc.restore(); // 恢复画布状态到最近的保存点
             } else {
-                gc.drawImage(gunFire, x - WIDTH / 1.5, y + HEIGHT / 2.4, 75, attackRange);
+                gc.drawImage(gunFire, x - WIDTH / 2, y + HEIGHT / 3, attackRange, 75);
             }
         }
     }
 
-    public void setMovement(boolean isMove) {
-        if (isMove) {
+    public void setMovement(Set<KeyCode> keysPressed) {
+        if (keysPressed.contains(KeyCode.UP)) {
+            this.playerCurrImage = playerJumpImage;
+        } else if (keysPressed.contains(KeyCode.LEFT) || keysPressed.contains(KeyCode.RIGHT)){
             this.playerCurrImage = playerMoveImage;
         } else {
             this.playerCurrImage = playerStandImage;
