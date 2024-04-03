@@ -12,13 +12,16 @@ public class Mage extends Player{
 
     private static final Image gunFire = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/Mage/fire.gif")));
     private static final Image playerCurrImage = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/Mage/Mage.png")));
+
     private static final int attackRange = 150;
     private static final int SPEED = 4;
     private static final int JUMP_FORCE = 18;
+    private static HealthBarUI healthBar;
 
     public Mage(int x, int y) {
         super(x, y, 100);
         controller = new PlayerController(this, SPEED, JUMP_FORCE);
+        healthBar = new HealthBarUI(100);
     }
 
     public void render(GraphicsContext gc) {
@@ -32,6 +35,8 @@ public class Mage extends Player{
             // 如果面朝左边，正常绘制
             gc.drawImage(playerCurrImage, getX(), getY(), WIDTH, HEIGHT);
         }
+
+        healthBar.draw(gc, getHealth(), false);
 
 //        if (isFire()) {
 //            // 根据玩家角色的朝向决定是否进行水平翻转
@@ -57,6 +62,9 @@ public class Mage extends Player{
                 case D -> {
                     controller.moveRight();
                     setFacingLeft(true);
+                }
+                case G ->{
+                    controller.fire();
                 }
             }
         }

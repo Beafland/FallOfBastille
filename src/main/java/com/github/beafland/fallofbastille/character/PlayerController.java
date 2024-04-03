@@ -90,6 +90,7 @@ public class PlayerController {
             player.setFire(true);
             isAttack = true;
             System.out.println("Fire!");
+            player.setHealth(player.getHealth() - 20);
             attackTimeline.play();
             fireTimeline.play();
         }

@@ -1,14 +1,9 @@
 package com.github.beafland.fallofbastille.character;
 
-import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
-
-import java.util.Objects;
-
 abstract class Player {
     public static final int WIDTH = 120;
     public static final int HEIGHT = WIDTH / 4 * 5;
-    private boolean facingLeft = false;
+    private boolean facingLeft = true;
     private boolean isFire = false;
     private int status = 0;
 
@@ -69,5 +64,13 @@ abstract class Player {
 
     public void setFacingLeft(boolean facingLeft) {
         this.facingLeft = facingLeft;
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
+    public void setHealth(int health) {
+        this.health = health;
     }
 }

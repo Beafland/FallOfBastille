@@ -10,6 +10,8 @@ import java.util.Set;
 
 import static com.github.beafland.fallofbastille.Game.mechan;
 import static com.github.beafland.fallofbastille.Game.mage;
+import static com.github.beafland.fallofbastille.Game.mechanHealth;
+import static com.github.beafland.fallofbastille.Game.mageHealth;
 
 public class AnimationLoop extends AnimationTimer {
     private final GraphicsContext gc;
@@ -31,13 +33,17 @@ public class AnimationLoop extends AnimationTimer {
         gc.drawImage(leftHouseImage, 0, 580, 550, 300);
         gc.drawImage(rightHouseImage, 1100, 100);
 
-        // 根据按键状态更新游戏状态
-        mechan.update(keysPressed);
-        mage.update(keysPressed);
+        updateGame();
 
         // 绘制游戏场景
         mechan.render(gc);
         mage.render(gc);
+    }
+
+    private void updateGame(){
+        // 根据按键状态更新游戏状态
+        mechan.update(keysPressed);
+        mage.update(keysPressed);
     }
 }
 

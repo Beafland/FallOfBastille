@@ -1,6 +1,8 @@
 package com.github.beafland.fallofbastille;
 
-import com.github.beafland.fallofbastille.character.*;
+import com.github.beafland.fallofbastille.character.HealthBarUI;
+import com.github.beafland.fallofbastille.character.Mage;
+import com.github.beafland.fallofbastille.character.Mechan;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -19,6 +21,8 @@ public class Game extends Application {
 
     public static Mechan mechan;
     public static Mage mage;
+    public static HealthBarUI mechanHealth;
+    public static HealthBarUI mageHealth;
 
     // 添加一个集合来跟踪按下的键
     private final Set<KeyCode> keysPressed = new HashSet<>();
@@ -32,39 +36,43 @@ public class Game extends Application {
         primaryStage.setTitle("Fall Of Bastille");
 
         Canvas canvas = new Canvas(WIDTH, HEIGHT);
-        Scene scene = new Scene(new StackPane(canvas), WIDTH, HEIGHT+100, Color.DARKGREY);
+        Scene scene = new Scene(new StackPane(canvas), WIDTH, HEIGHT + 100, Color.DARKGREY);
         GraphicsContext gc = canvas.getGraphicsContext2D();
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        //init players
+        initPlayer();
+
         // 设置键盘事件监听器，控制玩家移动
         canvas.setFocusTraversable(true); // 让canvas能够接收焦点和键盘事件
         canvas.setOnKeyPressed(event -> {
             KeyCode code = event.getCode();
-            if(code == KeyCode.UP){
-                if(!keysPressed.contains(KeyCode.UP)) {
+            if (code == KeyCode.UP) {
+                if (!keysPressed.contains(KeyCode.UP)) {
                     mechan.Jump();
                     keysPressed.add(code);
                 }
-            }if(code == KeyCode.W){
-                if(!keysPressed.contains(KeyCode.W)) {
+            }
+            if (code == KeyCode.W) {
+                if (!keysPressed.contains(KeyCode.W)) {
                     mage.Jump();
                     keysPressed.add(code);
                 }
-            }else {
+            } else {
                 keysPressed.add(code);
             }
         });
         canvas.setOnKeyReleased(event -> keysPressed.remove(event.getCode()));
 
-        iniPlayer();
 
         AnimationLoop loop = new AnimationLoop(gc, keysPressed);
         loop.start();
     }
 
-    public void iniPlayer(){
-        mechan = new Mechan(50, HEIGHT / 2); // 初始化玩家角色
-        mage = new Mage(1500, HEIGHT / 2); // 初始化玩家角色
+    public void initPlayer() {
+        mechan = new Mechan(1500, HEIGHT / 2); // 初始化玩家角色
+        mage = new Mage(50, HEIGHT / 2); // 初始化玩家角色
     }
 
 }

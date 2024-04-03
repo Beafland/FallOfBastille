@@ -16,13 +16,16 @@ public class Mechan extends Player{
     private static final Image playerJumpImage = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/mechan/mechanicianJump.gif")));
     private Image playerCurrImage = playerStandImage;
     private static final Image gunFire = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/mechan/gunFire.png")));
+
     private static final int attackRange = 150;
     private static final int SPEED = 5;
     private static final int JUMP_FORCE = 20;
+    private static HealthBarUI healthBar;
 
     public Mechan(int x, int y) {
         super(x, y, 100);
         controller = new PlayerController(this, SPEED, JUMP_FORCE);
+        healthBar = new HealthBarUI(100);
     }
 
     public void render(GraphicsContext gc) {
@@ -51,6 +54,8 @@ public class Mechan extends Player{
                 gc.drawImage(gunFire, getX() - WIDTH / 2, getY() + HEIGHT / 3, attackRange, 75);
             }
         }
+
+        healthBar.draw(gc, getHealth(), true);
     }
 
     public void update(Set<KeyCode> keysPressed){
