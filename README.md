@@ -1,5 +1,5 @@
 # Fall Of Bastille
-#####(原: Crumble)
+#### (原: Crumble)
 ![image](src/main/resources/images/cover.png)
 基于JavaFX框架编写的双人格斗类游戏，目前有法术巫师和手持散弹枪的机械师两名角色，每个角色拥有自己专属技能和大招
 
