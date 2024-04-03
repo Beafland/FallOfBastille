@@ -5,22 +5,20 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 public class Game extends Application {
     public static final int WIDTH = 2000;
     public static final int HEIGHT = 1000;
 
-    public static Player player;
-    public static PlayerController playerController;
+    public static Mechan mechan;
+    public static Mage mage;
 
     // 添加一个集合来跟踪按下的键
     private final Set<KeyCode> keysPressed = new HashSet<>();
@@ -44,7 +42,12 @@ public class Game extends Application {
             KeyCode code = event.getCode();
             if(code == KeyCode.UP){
                 if(!keysPressed.contains(KeyCode.UP)) {
-                    playerController.Jump();
+                    mechan.Jump();
+                    keysPressed.add(code);
+                }
+            }if(code == KeyCode.W){
+                if(!keysPressed.contains(KeyCode.W)) {
+                    mage.Jump();
                     keysPressed.add(code);
                 }
             }else {
@@ -60,14 +63,10 @@ public class Game extends Application {
     }
 
     public void iniPlayer(){
-        player = new Player(50, HEIGHT / 2,100); // 初始化玩家角色
-        playerController = new PlayerController(player);
+        mechan = new Mechan(50, HEIGHT / 2); // 初始化玩家角色
+        mage = new Mage(1500, HEIGHT / 2); // 初始化玩家角色
     }
 
-//    public void iniBot(){
-//        bot = new Bot(WIDTH / 2, HEIGHT / 2); // 初始化Bot
-//        botController = new BotController(bot);
-//    }
 }
 
 

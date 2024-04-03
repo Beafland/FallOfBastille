@@ -9,43 +9,31 @@ import javafx.util.Duration;
 import java.util.Set;
 
 public class PlayerController {
-    private static final int SPEED = 5;
-    private static final double LERP_SPEED = 0.1;
-    private static final double GRAVITY = 0.5;
-    private static final int JUMP_FORCE = 20;
+    private static final double GRAVITY = 0.4;
     private final Player player;
     private final Timeline attackTimeline;
     private final Timeline fireTimeline;
-    private double yVelocity;
+
+    private final int SPEED;
+    private final int JUMP_FORCE;
+    private double yVelocity = 0;
     private int JumpingChange = 2;
     private boolean isAttack = false;
 
-    public PlayerController(Player player) {
+    public PlayerController(Player player, int SPEED, int JUMP_FORCE) {
         this.player = player;
-        this.yVelocity = 0;
+        this.SPEED = SPEED;
+        this.JUMP_FORCE = JUMP_FORCE;
 
-        fireTimeline = new Timeline(new KeyFrame(Duration.seconds(0.05), e -> player.isFire = false));
+        fireTimeline = new Timeline(new KeyFrame(Duration.seconds(0.05), e -> player.setFire(false)));
         attackTimeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> isAttack = false));
         attackTimeline.setCycleCount(Timeline.INDEFINITE);
         fireTimeline.setCycleCount(Timeline.INDEFINITE);
     }
 
     public void update(Set<KeyCode> keysPressed) {
-        for (KeyCode keyCode : keysPressed) {
-            switch (keyCode) {
-                case LEFT -> {
-                    moveLeft();
-                    player.facingLeft = true;
-                }
-                case RIGHT -> {
-                    moveRight();
-                    player.facingLeft = false;
-                }
-                case SPACE -> fire();
-            }
-        }
 
-        player.setMovement(keysPressed);
+        moveStatus(keysPressed);
 
         // 应用重力
         yVelocity += GRAVITY;
@@ -87,9 +75,19 @@ public class PlayerController {
 
     }
 
+    private void moveStatus(Set<KeyCode> keysPressed) {
+        if (yVelocity != 0) {
+            player.setStatus(2);
+        } else if (keysPressed.contains(KeyCode.LEFT) || keysPressed.contains(KeyCode.RIGHT)){
+            player.setStatus(1);
+        } else {
+            player.setStatus(0);
+        }
+    }
+
     public void fire() {
         if (!isAttack) {
-            player.isFire = true;
+            player.setFire(true);
             isAttack = true;
             System.out.println("Fire!");
             attackTimeline.play();

@@ -8,8 +8,8 @@ import javafx.scene.input.KeyCode;
 import java.util.Objects;
 import java.util.Set;
 
-import static com.github.beafland.fallofbastille.Game.player;
-import static com.github.beafland.fallofbastille.Game.playerController;
+import static com.github.beafland.fallofbastille.Game.mechan;
+import static com.github.beafland.fallofbastille.Game.mage;
 
 public class AnimationLoop extends AnimationTimer {
     private final GraphicsContext gc;
@@ -32,10 +32,12 @@ public class AnimationLoop extends AnimationTimer {
         gc.drawImage(rightHouseImage, 1100, 100);
 
         // 根据按键状态更新游戏状态
-        playerController.update(keysPressed);
+        mechan.update(keysPressed);
+        mage.update(keysPressed);
 
         // 绘制游戏场景
-        player.render(gc);
+        mechan.render(gc);
+        mage.render(gc);
     }
 }
 
