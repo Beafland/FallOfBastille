@@ -10,13 +10,20 @@ import java.util.Set;
 public class Mage extends Player{
     private static PlayerController controller;
 
-    private static final Image gunFire = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/Mage/fire.gif")));
-    private static final Image playerCurrImage = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/Mage/Mage.png")));
+    //player images
+    private final Image playerStandImage = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/Mage/Mage.png")));
+    private final Image attackImage = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/Mage/mageAttack.png")));
+    private final Image useFireImage = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/Mage/mageFire.gif")));
+    private Image playerCurrImage = playerStandImage;
 
-    private static final int attackRange = 150;
-    private static final int SPEED = 4;
-    private static final int JUMP_FORCE = 18;
-    private static HealthBarUI healthBar;
+
+    private final int attackRange = 150;
+    private final int SPEED = 4;
+    private final int JUMP_FORCE = 18;
+    private final HealthBarUI healthBar;
+
+    private FireBall fireball;
+    private boolean useFireBall = false;
 
     public Mage(int x, int y) {
         super(x, y, 100);
@@ -25,6 +32,8 @@ public class Mage extends Player{
     }
 
     public void render(GraphicsContext gc) {
+        setPlayerImage();
+
         if (!isFacingLeft()) {
             gc.save(); // 保存当前画布状态
             gc.translate(getX() + WIDTH, getY()); // 将绘制起点向右移动图像宽度
@@ -38,21 +47,18 @@ public class Mage extends Player{
 
         healthBar.draw(gc, getHealth(), false);
 
-//        if (isFire()) {
-//            // 根据玩家角色的朝向决定是否进行水平翻转
-//            if (!isFacingLeft()) {
-//                gc.save(); // 保存当前画布状态
-//                gc.translate(getX() + WIDTH / 2, getY() + HEIGHT / 2); // 将绘制起点移动到攻击位置
-//                gc.scale(-1, 1); // 水平翻转
-//                gc.drawImage(gunFire, 0, 0, attackRange, 75); // 从新的原点绘制
-//                gc.restore(); // 恢复画布状态到最近的保存点
-//            } else {
-//                gc.drawImage(gunFire, getX() - WIDTH / 2, getY() + HEIGHT / 3, attackRange, 75);
-//            }
-//        }
+        if (useFireBall) {
+            //根据玩家角色的朝向决定是否进行水平翻转
+            fireball.render(gc);
+            if(fireball.getX() > 2000 || fireball.getX() < 0){
+                useFireBall = false;
+                fireball = null;
+            }
+        }
+
     }
 
-    public void update(Set<KeyCode> keysPressed){
+    public void update(Set<KeyCode> keysPressed, Mechan mechan){
         for (KeyCode keyCode : keysPressed) {
             switch (keyCode) {
                 case A -> {
@@ -63,23 +69,68 @@ public class Mage extends Player{
                     controller.moveRight();
                     setFacingLeft(true);
                 }
-                case G ->{
-                    controller.fire();
+                case G -> {
+                    useFireBall();
                 }
             }
         }
-        controller.update(keysPressed);
+        if(keysPressed.contains(KeyCode.G))
+            setStatus(12);
+        else
+            setStatus(0);
+
+        controller.update();
+
+        checkCollison(mechan);
+    }
+
+    private void checkCollison(Mechan mechan) {
+        double mechanX = mechan.getX(); // 获取 mechan 的 x 坐标
+        double mechanY = mechan.getY(); // 获取 mechan 的 y 坐标
+
+        if (useFireBall) {
+            double fireBallX = fireball.getX(); // 获取 fireball 的 x 坐标
+            double fireBallY = fireball.getY(); // 获取 fireball 的 y 坐标
+
+            // 检查是否在 x 轴上重叠
+            boolean overlapX = Math.abs(fireBallX - mechanX) < (fireball.getFireBallSize() + WIDTH/2.0);
+
+            // 检查是否在 y 轴上重叠（考虑到画板原点在左上角，需要反转 Y 坐标）
+            boolean overlapY = Math.abs(fireBallY - mechanY) < (fireball.getFireBallHeight() * 0.8 + HEIGHT) / 2;
+
+            // 如果在 x 和 y 轴上都重叠，则发生碰撞
+            if (overlapX && overlapY) {
+                // 处理碰撞逻辑
+                mechan.damage((int) (fireball.getFireBallSize() * 0.1));
+                useFireBall = false;
+                fireball = null;
+            }
+        }
     }
 
     public void Jump(){
         controller.Jump();
     }
 
-//    public void setPlayerImage() {
-//        switch(getStatus()){
-//            case 0 -> playerCurrImage = playerStandImage;
-//            case 1 -> playerCurrImage = playerMoveImage;
-//            case 2 -> playerCurrImage = playerJumpImage;
-//        }
-//    }
+    public void useFireBall(){
+        if(fireball == null){
+            fireball = new FireBall();
+        } else {
+            fireball.fireBallIncrease();
+        }
+
+    }
+
+    public void FireBallRelease(){
+        useFireBall = true;
+        fireball.release(getX(),getY(),isFacingLeft());
+    }
+
+    private void setPlayerImage() {
+        switch(getStatus()){
+            case 0 -> playerCurrImage = playerStandImage;
+            case 11 -> playerCurrImage = attackImage;
+            case 12 -> playerCurrImage = useFireImage;
+        }
+    }
 }

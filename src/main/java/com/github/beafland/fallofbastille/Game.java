@@ -63,7 +63,13 @@ public class Game extends Application {
                 keysPressed.add(code);
             }
         });
-        canvas.setOnKeyReleased(event -> keysPressed.remove(event.getCode()));
+        canvas.setOnKeyReleased(event -> {
+            KeyCode code = event.getCode();
+            if (code == KeyCode.G) {
+                mage.FireBallRelease();
+            }
+            keysPressed.remove(code);
+        });
 
 
         AnimationLoop loop = new AnimationLoop(gc, keysPressed);

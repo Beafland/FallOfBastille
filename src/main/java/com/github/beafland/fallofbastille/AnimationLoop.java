@@ -10,8 +10,6 @@ import java.util.Set;
 
 import static com.github.beafland.fallofbastille.Game.mechan;
 import static com.github.beafland.fallofbastille.Game.mage;
-import static com.github.beafland.fallofbastille.Game.mechanHealth;
-import static com.github.beafland.fallofbastille.Game.mageHealth;
 
 public class AnimationLoop extends AnimationTimer {
     private final GraphicsContext gc;
@@ -43,7 +41,7 @@ public class AnimationLoop extends AnimationTimer {
     private void updateGame(){
         // 根据按键状态更新游戏状态
         mechan.update(keysPressed);
-        mage.update(keysPressed);
+        mage.update(keysPressed, mechan);
     }
 }
 

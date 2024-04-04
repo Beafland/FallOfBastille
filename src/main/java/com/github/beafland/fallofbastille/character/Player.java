@@ -73,4 +73,8 @@ abstract class Player {
     public void setHealth(int health) {
         this.health = health;
     }
+
+    protected void damage(int damage) {
+        health -= damage;
+    }
 }
