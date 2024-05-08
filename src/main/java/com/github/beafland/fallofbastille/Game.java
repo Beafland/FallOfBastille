@@ -86,7 +86,7 @@ public class Game extends Application implements GameEventListener {
         });
 
 
-        AnimationLoop loop = new AnimationLoop(gc, keysPressedMechan, keysPressedMage, client);
+        AnimationLoop loop = new AnimationLoop(gc, keysPressedMechan, keysPressedMage);
         loop.start();
     }
 

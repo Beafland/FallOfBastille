@@ -13,14 +13,16 @@ import static com.github.beafland.fallofbastille.Game.mage;
 
 public class AnimationLoop extends AnimationTimer {
     private final GraphicsContext gc;
-    private final Set<KeyCode> keysPressed;
+    private final Set<KeyCode> keysPressedMechan;
+    private final Set<KeyCode> keysPressedMage;
     private final Image backgroundImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/Environment/background.png")));
     private final Image leftHouseImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/Environment/leftHouse.png")));
     private final Image rightHouseImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/Environment/rightHouse.png")));
 
-    public AnimationLoop(GraphicsContext gc, Set<KeyCode> keysPressed) {
+    public AnimationLoop(GraphicsContext gc, Set<KeyCode> keysPressedMechan, Set<KeyCode> keysPressedMage) {
         this.gc = gc;
-        this.keysPressed = keysPressed;
+        this.keysPressedMechan = keysPressedMechan;
+        this.keysPressedMage = keysPressedMage;
     }
 
     @Override
@@ -40,8 +42,8 @@ public class AnimationLoop extends AnimationTimer {
 
     private void updateGame(){
         // 根据按键状态更新游戏状态
-        mechan.update(keysPressed);
-        mage.update(keysPressed, mechan);
+        mechan.update(keysPressedMechan);
+        mage.update(keysPressedMage, mechan);
     }
 }
 
