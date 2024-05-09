@@ -74,7 +74,8 @@ abstract class Player {
         this.health = health;
     }
 
-    protected void damage(int damage) {
+    protected boolean damage(int damage) {
         health -= damage;
+        return health <= 0;
     }
 }
