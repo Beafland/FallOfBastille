@@ -60,29 +60,25 @@ public class Game extends Application implements GameEventListener {
         canvas.setOnKeyPressed(event -> {
             KeyCode code = event.getCode();
             System.out.println("KeyPressed:" + code.toString());
-            
-            onKeyPressed(code);
+
+            if (playerRole.equals("Mechan") && (code == KeyCode.LEFT || code == KeyCode.RIGHT || code == KeyCode.UP || code == KeyCode.SPACE)) {
+            	onKeyPressed(code);
+            }
+            else if (playerRole.equals("Mage") && (code == KeyCode.A || code == KeyCode.D || code == KeyCode.W || code == KeyCode.G)) {
+            	onKeyPressed(code);
+            }
+
             client.send("KeyPressed:" + code.toString());  // 发送键按下信息到服务器
-            
-            /*
-            if (code == KeyCode.UP) {
-                if (!keysPressedMechan.contains(KeyCode.UP)) {
-                    mechan.Jump();
-                    keysPressedMechan.add(code);
-                }
-            }
-            if (code == KeyCode.W) {
-                if (!keysPressedMage.contains(KeyCode.W)) {
-                    mage.Jump();
-                    keysPressedMage.add(code);
-                }
-            } else {
-            	keysPressedMage.add(code);
-            }
-            */
         });
         canvas.setOnKeyReleased(event -> {
             KeyCode code = event.getCode();
+            
+            if (playerRole.equals("Mechan") && (code == KeyCode.LEFT || code == KeyCode.RIGHT || code == KeyCode.UP || code == KeyCode.SPACE)) {
+            	onKeyReleased(code);
+            }
+            else if (playerRole.equals("Mage") && (code == KeyCode.A || code == KeyCode.D || code == KeyCode.W || code == KeyCode.G)) {
+            	onKeyReleased(code);
+            }
             client.send("KeyReleased:" + code.toString());  // 发送键释放信息到服务器
             onKeyReleased(code);
         });
@@ -99,6 +95,7 @@ public class Game extends Application implements GameEventListener {
     
     @Override
     public void onKeyPressed(KeyCode key) {
+
         if (key == KeyCode.UP) {
         	if (!keysPressedMechan.contains(KeyCode.UP)) {
                 mechan.Jump();
@@ -110,18 +107,19 @@ public class Game extends Application implements GameEventListener {
         	System.out.println("[Game.java][Mechan] Moved: " + key.toString());
     		keysPressedMechan.add(key);
     	}
-
-        else if (key == KeyCode.W) {
-        	if (!keysPressedMage.contains(KeyCode.W)) {
-                mage.Jump();
-                keysPressedMage.add(KeyCode.W);
-            }
-        }
-        
+    	
+    	else if (key == KeyCode.W) {
+	        	if (!keysPressedMage.contains(KeyCode.W)) {
+	                mage.Jump();
+	                keysPressedMage.add(KeyCode.W);
+	            }
+	    }
+	        
         else if (key == KeyCode.A || key == KeyCode.D || key == KeyCode.W || key == KeyCode.G) {
         	System.out.println("[Game.java][Mage] Moved: " + key.toString());
     		keysPressedMage.add(key);
     	}
+    	
     }
 
     @Override
@@ -131,27 +129,25 @@ public class Game extends Application implements GameEventListener {
     		System.out.println("[Game.java]" + playerRole + " Removed: " + key.toString());
     		keysPressedMechan.remove(key);
     	}
+
     	else if (key == KeyCode.W || key == KeyCode.S || key == KeyCode.A || key == KeyCode.D || key == KeyCode.G) {
-    		System.out.println("[Game.java]" + playerRole + " Removed: " + key.toString());
-    		keysPressedMage.remove(key);
-    		if (key == KeyCode.G) {
-                mage.FireBallRelease();
-            }
-    	}
+	    		System.out.println("[Game.java]" + playerRole + " Removed: " + key.toString());
+	    		keysPressedMage.remove(key);
+	    		if (key == KeyCode.G) {
+	                mage.FireBallRelease();
+	            }
+	    }
     }
     
     @Override
     public void onJump(String playerType) {
-        if (playerType.equals("Mechan")) {
         	if (!keysPressedMechan.contains(KeyCode.UP)) {
                 mechan.Jump();
                 keysPressedMechan.add(KeyCode.UP);
-            }
-        } else if (playerType.equals("Mage")) {
-        	if (!keysPressedMage.contains(KeyCode.W)) {
+
+        } else if (!keysPressedMage.contains(KeyCode.W)) {
                 mage.Jump();
                 keysPressedMage.add(KeyCode.W);
-            }
         }
     }
 
