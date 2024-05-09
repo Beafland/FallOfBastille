@@ -37,7 +37,7 @@ public class Game extends Application implements GameEventListener {
 
     @Override
     public void start(Stage primaryStage) throws IOException {
-    	String server = "localhost";
+    	String server = "127.0.0.1";
         
     	client = new GameClient(server, 5555, this);
         primaryStage.setTitle("Fall Of Bastille");
@@ -56,33 +56,31 @@ public class Game extends Application implements GameEventListener {
         canvas.setOnKeyPressed(event -> {
             KeyCode code = event.getCode();
             System.out.println("KeyPressed:" + code.toString());
+            
+            onKeyPressed(code);
             client.send("KeyPressed:" + code.toString());  // 发送键按下信息到服务器
+            
             /*
             if (code == KeyCode.UP) {
-                if (!keysPressed.contains(KeyCode.UP)) {
+                if (!keysPressedMechan.contains(KeyCode.UP)) {
                     mechan.Jump();
-                    keysPressed.add(code);
+                    keysPressedMechan.add(code);
                 }
             }
             if (code == KeyCode.W) {
-                if (!keysPressed.contains(KeyCode.W)) {
+                if (!keysPressedMage.contains(KeyCode.W)) {
                     mage.Jump();
-                    keysPressed.add(code);
+                    keysPressedMage.add(code);
                 }
             } else {
-                keysPressed.add(code);
+            	keysPressedMage.add(code);
             }
             */
         });
         canvas.setOnKeyReleased(event -> {
             KeyCode code = event.getCode();
             client.send("KeyReleased:" + code.toString());  // 发送键释放信息到服务器
-            /*
-            if (code == KeyCode.G) {
-                mage.FireBallRelease();
-            }
-            keysPressed.remove(code);
-            */
+            onKeyReleased(code);
         });
 
 
@@ -103,12 +101,20 @@ public class Game extends Application implements GameEventListener {
                 keysPressedMechan.add(KeyCode.UP);
             }
         }
+        
+        else if (key == KeyCode.LEFT || key == KeyCode.RIGHT || key == KeyCode.SPACE) {
+    		keysPressedMechan.add(key);
+    	}
+
         else if (key == KeyCode.W) {
         	if (!keysPressedMage.contains(KeyCode.W)) {
                 mage.Jump();
-                keysPressedMechan.add(KeyCode.W);
+                keysPressedMage.add(KeyCode.W);
             }
         }
+        else if (key == KeyCode.A || key == KeyCode.D || key == KeyCode.G) {
+    		keysPressedMage.add(key);
+    	}
         // 其他按键逻辑
     }
 

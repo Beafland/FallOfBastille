@@ -7,7 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class GameServer {
-    private ServerSocket serverSocket;
+    private ServerSocket serverSocketOne;
+    private ServerSocket serverSocketTwo;
     private Socket playerOne;
     private Socket playerTwo;
     private final int port;
@@ -38,14 +39,16 @@ public class GameServer {
         } finally {
             stopServer();
         }*/
-    	serverSocket = new ServerSocket(5555);
-        playerOne = serverSocket.accept();
+    	
+    	serverSocketOne = new ServerSocket(5555);
+    	serverSocketTwo = new ServerSocket(49153);
+        playerOne = serverSocketOne.accept();
         System.out.println("Player connected: " + playerOne.getInetAddress());
-        playerTwo = serverSocket.accept();
+        playerTwo = serverSocketTwo.accept();
         System.out.println("Player connected: " + playerTwo.getInetAddress());
 
-        Thread playerOneHandler = new PlayerHandler(playerOne, playerTwo);
-        Thread playerTwoHandler = new PlayerHandler(playerTwo, playerOne);
+        Thread playerOneHandler = new PlayerHandler(playerOne, playerTwo, "Mechan");
+        Thread playerTwoHandler = new PlayerHandler(playerTwo, playerOne, "Mage");
         playerOneHandler.start();
         playerTwoHandler.start();
     }
@@ -53,8 +56,8 @@ public class GameServer {
     public void stopServer() {
         try {
             running = false;
-            if (serverSocket != null && !serverSocket.isClosed()) {
-                serverSocket.close();
+            if (serverSocketOne != null && !serverSocketOne.isClosed()) {
+                serverSocketOne.close();
             }
             pool.shutdown();
             System.out.println("Server stopped.");
@@ -74,7 +77,6 @@ public class GameServer {
             // Update game state accordingly
             // Broadcast updated game state to clients
         	System.out.println(inputLine);
-        	System.out.println("Fire!");
         }
     }
 
@@ -118,10 +120,12 @@ public class GameServer {
     private class PlayerHandler extends Thread {
         private Socket inputPlayer;
         private Socket outputPlayer;
+        private String playerRole; // 新增角色标识
 
-        public PlayerHandler(Socket input, Socket output) {
+        public PlayerHandler(Socket input, Socket output, String role) {
             this.inputPlayer = input;
             this.outputPlayer = output;
+            this.playerRole = role;
         }
 
         @Override
@@ -129,17 +133,25 @@ public class GameServer {
             try {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(inputPlayer.getInputStream()));
                 PrintWriter writer = new PrintWriter(outputPlayer.getOutputStream(), true);
+                
                 String message;
+                
+                writer.println("Role:" + playerRole);
+                
                 while ((message = reader.readLine()) != null) {
-                	System.out.println("Received from player: " + message); // 确认接收到的消息
                     writer.println(message); // 转发消息
-                    System.out.println("Sent to other player: " + message);
+                    System.out.println("Sent to other player: " + this.playerRole + message);
+                    //outputPlayer.getOutputStream().write((message + "\n").getBytes());
+                    //outputPlayer.getOutputStream().flush();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+
     }
+    
+    
 
     public static void main(String[] args) throws IOException {
         int port = 5555; // Example port number

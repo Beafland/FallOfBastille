@@ -14,6 +14,7 @@ public class GameClient {
     private PrintWriter out;
     private BufferedReader in;
     private GameEventListener eventListener;
+    private String playerRole;
 
     public GameClient(String serverAddress, int port, GameEventListener eventListener) throws IOException {
     	this.eventListener = eventListener;
@@ -29,6 +30,15 @@ public class GameClient {
             throw e;
         }
     	
+        // 接收并设置角色
+        String roleInfo = in.readLine();
+        if (roleInfo.startsWith("Role:")) {
+            this.playerRole = roleInfo.substring(5);
+            System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAA: "+ this.playerRole);
+        }
+        // debug
+        //this.playerRole = "Mechan";
+    	
     	new Thread(this::listenToServer).start();
     }
     
@@ -39,10 +49,10 @@ public class GameClient {
             	System.out.println("Client received from server: "+ serverMessage);
                 if (serverMessage.startsWith("KeyPressed:")) {
                     String keyCode = serverMessage.substring(11);
-                    handleKeyPress(keyCode);
+                    handleKeyPress(keyCode, playerRole);
                 } else if (serverMessage.startsWith("KeyReleased:")) {
                     String keyCode = serverMessage.substring(13);
-                    handleKeyRelease(keyCode);
+                    handleKeyRelease(keyCode, playerRole);
                 }
             }
         } catch (IOException e) {
@@ -50,14 +60,22 @@ public class GameClient {
         }
     }
     
-    private void handleKeyPress(String keyCode) {
+    private void handleKeyPress(String keyCode, String playerRole) {
         // 根据按键码更新游戏状态，例如移动角色
         System.out.println("Key Pressed: " + keyCode);
-        eventListener.onKeyPressed(KeyCode.getKeyCode(keyCode));
+        
+        if (playerRole.equals("Mechan")) {
+        	if (keyCode == "LEFT" || keyCode == "RIGHT" || keyCode == "SPACE" || keyCode == "UP") {
+        		eventListener.onKeyPressed(KeyCode.getKeyCode(keyCode));
+        	}
+        }
+        else {
+        	eventListener.onKeyPressed(KeyCode.getKeyCode(keyCode));
+        }
         // 这里可以调用GameRoom或者其他管理游戏逻辑的类的方法
     }
 
-    private void handleKeyRelease(String keyCode) {
+    private void handleKeyRelease(String keyCode, String playerRole) {
         // 处理按键释放
         System.out.println("Key Released: " + keyCode);
         eventListener.onKeyReleased(KeyCode.getKeyCode(keyCode));
