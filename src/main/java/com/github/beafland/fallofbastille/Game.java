@@ -26,6 +26,8 @@ public class Game extends Application implements GameEventListener {
     public static Mage mage;
     public static HealthBarUI mechanHealth;
     public static HealthBarUI mageHealth;
+    
+    private String playerRole;
 
     // 添加一个集合来跟踪按下的键
     private final Set<KeyCode> keysPressedMechan = new HashSet<>();
@@ -40,6 +42,8 @@ public class Game extends Application implements GameEventListener {
     	String server = "127.0.0.1";
         
     	client = new GameClient(server, 5555, this);
+    	this.playerRole = client.getPlayerRole();
+    	System.out.println("Assigned role: " + playerRole);
         primaryStage.setTitle("Fall Of Bastille");
 
         Canvas canvas = new Canvas(WIDTH, HEIGHT);
@@ -102,7 +106,8 @@ public class Game extends Application implements GameEventListener {
             }
         }
         
-        else if (key == KeyCode.LEFT || key == KeyCode.RIGHT || key == KeyCode.SPACE) {
+        else if (key == KeyCode.LEFT || key == KeyCode.RIGHT || key == KeyCode.UP || key == KeyCode.SPACE) {
+        	System.out.println("[Game.java][Mechan] Moved: " + key.toString());
     		keysPressedMechan.add(key);
     	}
 
@@ -112,19 +117,22 @@ public class Game extends Application implements GameEventListener {
                 keysPressedMage.add(KeyCode.W);
             }
         }
-        else if (key == KeyCode.A || key == KeyCode.D || key == KeyCode.G) {
+        
+        else if (key == KeyCode.A || key == KeyCode.D || key == KeyCode.W || key == KeyCode.G) {
+        	System.out.println("[Game.java][Mage] Moved: " + key.toString());
     		keysPressedMage.add(key);
     	}
-        // 其他按键逻辑
     }
 
     @Override
     public void onKeyReleased(KeyCode key) {
         // 处理按键释放逻辑
     	if (key == KeyCode.UP || key == KeyCode.DOWN || key == KeyCode.LEFT || key == KeyCode.RIGHT || key == KeyCode.SPACE) {
+    		System.out.println("[Game.java]" + playerRole + " Removed: " + key.toString());
     		keysPressedMechan.remove(key);
     	}
     	else if (key == KeyCode.W || key == KeyCode.S || key == KeyCode.A || key == KeyCode.D || key == KeyCode.G) {
+    		System.out.println("[Game.java]" + playerRole + " Removed: " + key.toString());
     		keysPressedMage.remove(key);
     		if (key == KeyCode.G) {
                 mage.FireBallRelease();

@@ -30,6 +30,7 @@ public class Mechan extends Player{
 
     public void update(Set<KeyCode> keysPressed){
         for (KeyCode keyCode : keysPressed) {
+        	System.out.println("[Mechan.java]" + " | " + Thread.currentThread().getStackTrace()[2].getMethodName() +"[Game.java][Mage] Moved: " + keyCode.toString());
             switch (keyCode) {
                 case LEFT -> {
                     controller.moveLeft();

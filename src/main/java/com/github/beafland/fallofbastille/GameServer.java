@@ -41,14 +41,18 @@ public class GameServer {
         }*/
     	
     	serverSocketOne = new ServerSocket(5555);
-    	serverSocketTwo = new ServerSocket(49153);
-        playerOne = serverSocketOne.accept();
-        System.out.println("Player connected: " + playerOne.getInetAddress());
-        playerTwo = serverSocketTwo.accept();
-        System.out.println("Player connected: " + playerTwo.getInetAddress());
+    	
+        System.out.println("Waiting for players to connect...");
 
-        Thread playerOneHandler = new PlayerHandler(playerOne, playerTwo, "Mechan");
-        Thread playerTwoHandler = new PlayerHandler(playerTwo, playerOne, "Mage");
+        playerOne = serverSocketOne.accept();
+        System.out.println("Player One connected: " + playerOne.getInetAddress());
+
+        playerTwo = serverSocketOne.accept();
+        System.out.println("Player Two connected: " + playerTwo.getInetAddress());
+
+        // 仅在两个玩家都连接后启动线程
+        Thread playerOneHandler = new PlayerHandler(playerOne, playerTwo, "Mechan", "1st");
+        Thread playerTwoHandler = new PlayerHandler(playerTwo, playerOne, "Mage", "2nd");
         playerOneHandler.start();
         playerTwoHandler.start();
     }
@@ -121,11 +125,13 @@ public class GameServer {
         private Socket inputPlayer;
         private Socket outputPlayer;
         private String playerRole; // 新增角色标识
+        public String debugName;
 
-        public PlayerHandler(Socket input, Socket output, String role) {
+        public PlayerHandler(Socket input, Socket output, String role, String name) {
             this.inputPlayer = input;
             this.outputPlayer = output;
             this.playerRole = role;
+            this.debugName = name;
         }
 
         @Override
@@ -136,6 +142,7 @@ public class GameServer {
                 
                 String message;
                 
+                System.out.println("Name: " + debugName + " | " + playerRole);
                 writer.println("Role:" + playerRole);
                 
                 while ((message = reader.readLine()) != null) {
@@ -146,6 +153,13 @@ public class GameServer {
                 }
             } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                try {
+                    inputPlayer.close();
+                    outputPlayer.close();
+                } catch (IOException e) {
+                    System.err.println("Failed to close sockets: " + e.getMessage());
+                }
             }
         }
 
