@@ -39,11 +39,11 @@ public class FireBall{
 
     public void render(GraphicsContext gc){
         if (!goingLeft) {
-            gc.save(); // 保存当前画布状态
-            gc.translate(x, y - fireBallSize / 2 + HEIGHT / 3.0); // 将绘制起点移动到攻击位置d
-            gc.scale(-1, 1); // 水平翻转
+            gc.save(); // Save the current canvas state
+            gc.translate(x, y - fireBallSize / 2 + HEIGHT / 3.0); // Move the drawing start point to the attack position
+            gc.scale(-1, 1); // Horizontal Flip
             gc.drawImage(fireBallImage, 0, 0, fireBallHeight, fireBallSize);
-            gc.restore(); // 恢复画布状态到最近的保存点
+            gc.restore(); //Restore the canvas state to the most recent save point
             x-=10;
         } else {
             gc.drawImage(fireBallImage, x + WIDTH / 2.0, y - fireBallSize / 2 + HEIGHT / 3.0,

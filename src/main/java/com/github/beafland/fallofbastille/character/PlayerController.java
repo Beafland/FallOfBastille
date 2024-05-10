@@ -19,11 +19,11 @@ public class PlayerController {
 
     public void update() {
 
-        // 应用重力
+        // Applied Gravity
         yVelocity += GRAVITY;
         player.setY(player.getY() + yVelocity);
 
-        // 地面碰撞检测
+        // Ground collision detection
         if (player.getY() + Player.HEIGHT > Game.HEIGHT) {
             player.setY(Game.HEIGHT - Player.HEIGHT);
             yVelocity = 0;
@@ -38,17 +38,17 @@ public class PlayerController {
         int rightPlatformStartX = 1200;
         int rightPlatformEndX = 2000;
 
-        // 检测玩家是否在平台的横向范围内
+        // Detect if the player is within the lateral range of the platform
         if (yVelocity > 0) {
             if (player.getX() >= leftPlatformStartX && player.getX() <= leftPlatformEndX) {
-                // 检测玩家是否触碰到平台的顶部
+                // Detects if the player touches the top of the platform
                 if (player.getY() + Player.HEIGHT >= leftPlatformTopY && player.getY() + Player.HEIGHT - yVelocity <= leftPlatformTopY) { // 10为假定的厚度
                     player.setY(leftPlatformTopY - Player.HEIGHT);
                     yVelocity = 0;
                     JumpingChange = 2;
                 }
             } else if (player.getX() >= rightPlatformStartX && player.getX() <= rightPlatformEndX) {
-                // 检测玩家是否触碰到平台的顶部
+                // Detects if the player touches the top of the platform
                 if (player.getY() + Player.HEIGHT >= rightPlatformTopY && player.getY() + Player.HEIGHT - yVelocity <= rightPlatformTopY) { // 10为假定的厚度
                     player.setY(rightPlatformTopY - Player.HEIGHT);
                     yVelocity = 0;
@@ -57,7 +57,7 @@ public class PlayerController {
             }
         }
 
-        //重置站姿
+        //Reset Stance
         if (yVelocity != 0) {
             player.setStatus(2);
         }

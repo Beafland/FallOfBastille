@@ -1,6 +1,5 @@
 package com.github.beafland.fallofbastille;
 
-import com.github.beafland.fallofbastille.character.HealthBarUI;
 import com.github.beafland.fallofbastille.character.Mage;
 import com.github.beafland.fallofbastille.character.Mechan;
 import javafx.application.Application;
@@ -15,6 +14,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -30,7 +31,7 @@ public class Game extends Application implements GameEventListener {
     //Players
     public static Mechan mechan;
     public static Mage mage;
-    // 添加一个集合来跟踪按下的键
+    // Add a collection to track key presses
     private final Set<KeyCode> keysPressedMechan = new HashSet<>();
     private final Set<KeyCode> keysPressedMage = new HashSet<>();
     private GameClient client;
@@ -144,32 +145,43 @@ public class Game extends Application implements GameEventListener {
 
     public void showRoleSelection(Stage primaryStage, boolean isHost) {
         ToggleGroup group = new ToggleGroup();
+//      Mechan button
         ImageView mechanImage = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/mechan/mechanician.png"))));
         ToggleButton mechanButton = new ToggleButton();
         mechanButton.setGraphic(mechanImage);
         mechanButton.setToggleGroup(group);
 
+//      Mage button
         ImageView mageImage = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/Mage/mage.png"))));
         ToggleButton mageButton = new ToggleButton();
         mageButton.setGraphic(mageImage);
         mageButton.setToggleGroup(group);
 
-        // 设置 ToggleGroup 的事件监听器，当选择角色后发送 "RoleSelected" 消息
+        Label waitingLabel = new Label();
+        waitingLabel.setFont(Font.font("Arial", FontWeight.BOLD, 60)); // setting text
+        waitingLabel.setAlignment(Pos.CENTER); // Alignment text
+
+        // Set the ToggleGroup's event listener to send the "RoleSelected" message when a role is selected.
         group.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == mechanButton) {
                 playerRole = "Mechan";
-                mageButton.setDisable(true); // 选中 Mage 按钮后禁用 Mechan 按钮
+                mageButton.setDisable(true); // Disabling the Mechan button when the Mage button is selected
             } else if (newValue == mageButton) {
                 playerRole = "Mage";
-                mechanButton.setDisable(true); // 选中 Mechan 按钮后禁用 Mage 按钮
+                mechanButton.setDisable(true); // Disabling the Mage button when the Mechan button is selected
             }
-            client.send("RoleSelected:" + playerRole); // 通知服务器角色已选择
-            client.send("Ready:" + playerRole); // 通知服务器此客户端已准备就绪
+            client.send("RoleSelected:" + playerRole); // Notify the server that a role has been selected
+            client.send("Ready:" + playerRole); // Notify the server that the client is ready
+            waitingLabel.setText("Waiting for connection...."); // Update waiting for news
         });
 
-        HBox vbox = new HBox(20); // 使用 VBox 布局
+        HBox hbox = new HBox(20); // Layout with VBox
+        hbox.setAlignment(Pos.CENTER);
+        hbox.getChildren().addAll(mageButton, mechanButton);
+
+        VBox vbox = new VBox(20);
         vbox.setAlignment(Pos.CENTER);
-        vbox.getChildren().addAll(mageButton, mechanButton);
+        vbox.getChildren().addAll(hbox, waitingLabel);
 
         StackPane root = new StackPane(vbox);
         root.setBackground(new Background(new BackgroundFill(Color.DARKGREY, null, null)));
@@ -180,7 +192,6 @@ public class Game extends Application implements GameEventListener {
     public void initGame() {
         //init players
         initPlayer();
-        System.out.println(playerRole);
         Canvas canvas = new Canvas(WIDTH, HEIGHT);
         StackPane root = new StackPane(canvas);
 
@@ -190,8 +201,8 @@ public class Game extends Application implements GameEventListener {
         Scene scene = new Scene(root, WIDTH, HEIGHT + 100);
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
-        // 设置键盘事件监听器，控制玩家移动
-        canvas.setFocusTraversable(true); // 让canvas能够接收焦点和键盘事件
+        // Setting up keyboard event listeners to control player movement
+        canvas.setFocusTraversable(true); // Enabling canvas to receive focus and keyboard events
 
         canvas.setOnKeyPressed(event -> {
             KeyCode code = event.getCode();
@@ -205,7 +216,7 @@ public class Game extends Application implements GameEventListener {
             }
 
             if (!playerRole.equals("local"))
-                client.send("KeyPressed:" + code);  // 发送键按下信息到服务器
+                client.send("KeyPressed:" + code);  // Send key press message to server
         });
 
         canvas.setOnKeyReleased(event -> {
@@ -220,7 +231,7 @@ public class Game extends Application implements GameEventListener {
             }
 
             if (!playerRole.equals("local"))
-                client.send("KeyReleased:" + code.toString());  // 发送键释放信息到服务器
+                client.send("KeyReleased:" + code.toString());  // Send key press message to server
 
             onKeyReleased(code);
         });
@@ -233,8 +244,8 @@ public class Game extends Application implements GameEventListener {
     }
 
     public void initPlayer() {
-        mechan = new Mechan(1500, HEIGHT / 2); // 初始化玩家角色
-        mage = new Mage(50, HEIGHT / 2); // 初始化玩家角色
+        mechan = new Mechan(1500, HEIGHT / 2); // Initialising the Player Character
+        mage = new Mage(50, HEIGHT / 2);
 
         mechan.setEnemy(mage);
         mage.setEnemy(mechan);
@@ -263,7 +274,7 @@ public class Game extends Application implements GameEventListener {
 
     @Override
     public void onKeyReleased(KeyCode key) {
-        // 处理按键释放逻辑
+        // Handling key release logic
         if (key == KeyCode.UP || key == KeyCode.DOWN || key == KeyCode.LEFT || key == KeyCode.RIGHT || key == KeyCode.SPACE) {
             keysPressedMechan.remove(key);
         } else if (key == KeyCode.W || key == KeyCode.S || key == KeyCode.A || key == KeyCode.D || key == KeyCode.G) {

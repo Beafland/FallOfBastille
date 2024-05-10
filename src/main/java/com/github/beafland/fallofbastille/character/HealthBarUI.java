@@ -29,28 +29,28 @@ public class HealthBarUI {
         double fakeBarWidth = width * (fakeHealth / fullHealth);
 
         if (rightCorner) {
-            gc.save(); // 保存当前画布状态
-            gc.translate(1450 + width, y); // 将绘制起点向右移动图像宽度
-            gc.scale(-1, 1); // 水平翻转
+            gc.save(); // Save the current canvas state
+            gc.translate(1450 + width, y); // Shifts the drawing start point to the right by the width of the image.
+            gc.scale(-1, 1); // Horizontal Flip
         }
 
-        // 绘制底部背景
+        // Drawing the bottom background
         gc.setFill(Color.LIGHTGRAY);
         gc.fillRect(x, y, width, height);
 
-        // 绘制底部健康条
+        // Drawing the bottom health bar
         gc.setFill(Color.DARKRED);
         gc.fillRect(x, y, fakeBarWidth, height);
-        // 绘制健康条
+        // Mapping Health Strips
         gc.setFill(Color.RED);
         gc.fillRect(x, y, barWidth, height);
 
-        // 绘制边框
+        // Drawing Borders
         gc.setStroke(Color.BLACK);
         gc.strokeRect(x, y, width, height);
 
         if (rightCorner) {
-            gc.restore(); // 恢复画布状态到最近的保存点
+            gc.restore(); // Restore the canvas state to the most recent save point
         }
 
     }

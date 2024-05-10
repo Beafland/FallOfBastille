@@ -75,24 +75,24 @@ public class Mechan extends Player{
         setPlayerImage();
 
         if (!isFacingLeft()) {
-            gc.save(); // 保存当前画布状态
-            gc.translate(getX() + WIDTH, getY()); // 将绘制起点向右移动图像宽度
-            gc.scale(-1, 1); // 水平翻转
-            gc.drawImage(playerCurrImage, 0, 0, WIDTH, HEIGHT); // 从新的原点绘制
-            gc.restore(); // 恢复画布状态到最近的保存点
+            gc.save(); // Save the current canvas state
+            gc.translate(getX() + WIDTH, getY()); // Shifts the drawing start point to the right by the width of the image.
+            gc.scale(-1, 1); // Horizontal Flip
+            gc.drawImage(playerCurrImage, 0, 0, WIDTH, HEIGHT); // Drawing from a new origin
+            gc.restore(); // Restore the canvas state to the most recent save point
         } else {
-            // 如果面朝左边，正常绘制
+            // If facing left, draw normally
             gc.drawImage(playerCurrImage, getX(), getY(), WIDTH, HEIGHT);
         }
 
         if (isFire()) {
-            // 根据玩家角色的朝向决定是否进行水平翻转
+            // Horizontal flip or not depending on the orientation of the player's character
             if (!isFacingLeft()) {
-                gc.save(); // 保存当前画布状态
-                gc.translate(getX() + attackRange + WIDTH, getY()- attackRange * 0.1 + HEIGHT / 2.0); // 将绘制起点移动到攻击位置
-                gc.scale(-1, 1); // 水平翻转
-                gc.drawImage(gunFire, 0, 0, attackRange, attackRange * 0.25); // 从新的原点绘制
-                gc.restore(); // 恢复画布状态到最近的保存点
+                gc.save(); // Save the current canvas state
+                gc.translate(getX() + attackRange + WIDTH, getY()- attackRange * 0.1 + HEIGHT / 2.0); // Move the drawing start point to the attack position
+                gc.scale(-1, 1); // Horizontal Flip
+                gc.drawImage(gunFire, 0, 0, attackRange, attackRange * 0.25); // Drawing from a new origin
+                gc.restore(); // Restore the canvas state to the most recent save point
             } else {
                 gc.drawImage(gunFire, getX() - attackRange, getY() - attackRange * 0.1 + HEIGHT / 2.0, attackRange, attackRange * 0.25);
             }
@@ -112,37 +112,41 @@ public class Mechan extends Player{
 
             checkFireCollision();
 
-            //攻击后摇
+            //Attack Aftershock
             attackTimeline.play();
             fireTimeline.play();
         }
     }
 
     private void checkFireCollision(){
-        double gunFireX = getX(); // gun fire 的 x 坐标
+        double gunFireX = getX(); // x-coordinate of gun fire
 
-        double mageX = enemy.getX(); // 获取 mage 的 x 坐标
-        double mageY = enemy.getY(); // 获取 mage 的 y 坐标
+        double mageX = enemy.getX(); // Get the x-coordinate of the mage
+        double mageY = enemy.getY(); // Get the y-coordinate of the mage
 
 
         if (!isFacingLeft()) {
-            // 如果人物朝向右边，则 gun fire 的 x 坐标为人物的 x 坐标加上攻击范围
+            // If the character is facing right, the x-coordinate of the gun fire
+            // is the character's x-coordinate plus the attack range.
             gunFireX += attackRange;
         } else {
-            // 如果人物朝向左边，则 gun fire 的 x 坐标为人物的 x 坐标减去攻击范围
+            // If the character is facing left, the x-coordinate of gun fire
+            // is the character's x-coordinate minus the range of the attack.
             gunFireX -= attackRange;
         }
 
-        // 检查 gun fire 的 x 坐标是否与 mage 的 x 坐标重叠，并考虑两者的宽度
+        // Check that the x-coordinate of the gun fire does not overlap with
+        // the x-coordinate of the mage, taking into account the width of both.
         boolean overlapX = Math.abs(gunFireX - mageX) < (attackRange + (getWIDTH() * 0.6)) / 2;
 
-        // 检查是否在 y 轴上重叠（考虑到画板原点在左上角，需要反转 Y 坐标）
+        // Check for overlap on the y-axis
+        // (given that the board origin is in the upper left corner, the y-coordinate needs to be inverted)
         boolean overlapY = Math.abs(mageY - getY()) < (attackRange * 0.1 + HEIGHT) / 2;
 
-        // 如果在 x 和 y 轴上都重叠，则发生碰撞
+        // Collisions occur if they overlap on both the x and y axes
         if (overlapX && overlapY) {
-            // 计算对角色造成的伤害
-            enemy.damage((20));
+            // Calculate the damage done to the character
+            enemy.damage(20);
             System.out.println("hit!");
         }
     }
