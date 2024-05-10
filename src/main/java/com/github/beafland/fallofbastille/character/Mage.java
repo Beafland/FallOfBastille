@@ -1,33 +1,42 @@
 package com.github.beafland.fallofbastille.character;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
+import javafx.util.Duration;
 
 import java.util.Objects;
 import java.util.Set;
 
 public class Mage extends Player {
-    private static PlayerController controller;
-
     //player images
     private final Image playerStandImage = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/Mage/Mage.png")));
     private final Image attackImage = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/Mage/mageAttack.png")));
     private final Image useFireImage = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/Mage/mageFire.gif")));
-    private final int attackRange = 150;
-    private final int SPEED = 4;
+    private Image playerCurrImage = playerStandImage;
+
+    //initialize player
+    private static PlayerController controller;
+    private int SPEED = 4;
     private final int JUMP_FORCE = 18;
     private final HealthBarUI healthBar;
-    private Image playerCurrImage = playerStandImage;
-    private FireBall fireball;
-    private boolean useFireBall = false;
-
     private Player enemy;
+
+    //Fireball
+    private FireBall fireball;
+    private boolean isAttack = false;
+    private boolean usedFireBall = false;
+    private final Timeline attackTimeline;
 
     public Mage(int x, int y) {
         super(x, y, 100);
         controller = new PlayerController(this, SPEED, JUMP_FORCE);
         healthBar = new HealthBarUI(100);
+
+        attackTimeline = new Timeline(new KeyFrame(Duration.seconds(2), e -> isAttack = false));
+        attackTimeline.setCycleCount(Timeline.INDEFINITE);
     }
 
     public void setEnemy(Player enemy) {
@@ -50,11 +59,11 @@ public class Mage extends Player {
 
         healthBar.draw(gc, getHealth(), false);
 
-        if (useFireBall && fireball != null) {
+        if (usedFireBall && fireball != null) {
             //根据玩家角色的朝向决定是否进行水平翻转
             fireball.render(gc);
             if (fireball.getX() > 2000 || fireball.getX() < 0) {
-                useFireBall = false;
+                usedFireBall = false;
                 fireball = null;
             }
         }
@@ -78,14 +87,14 @@ public class Mage extends Player {
             }
         }
         //Change character status image
-        if (keysPressed.contains(KeyCode.G)) setStatus(12);
+        if (keysPressed.contains(KeyCode.G) && !isAttack) setStatus(12);
         else setStatus(0);
 
         //update character position
         controller.update();
 
         //check fireball collision if used
-        if (useFireBall) checkCollison();
+        if (usedFireBall && fireball != null) checkCollison();
     }
 
     private void checkCollison() {
@@ -105,7 +114,7 @@ public class Mage extends Player {
         if (overlapX && overlapY) {
             // 计算对角色造成的伤害
             enemy.damage((int) (fireball.getFireBallSize() * 0.1));
-            useFireBall = false;
+            usedFireBall = false;
             fireball = null;
         }
     }
@@ -115,20 +124,33 @@ public class Mage extends Player {
     }
 
     public void useFireBall() {
-        //create a new fireball if null
-        //increase the fireball instead
-        if (fireball == null) {
-            fireball = new FireBall();
-        } else {
-            fireball.fireBallIncrease();
+        if(!isAttack && !usedFireBall) {
+            //Slow Speed
+            SPEED = 2;
+            //create a new fireball if null
+            //increase the fireball instead
+            if (fireball == null) {
+                fireball = new FireBall();
+                fireball.fireBallIncrease();
+            } else {
+                fireball.fireBallIncrease();
+            }
         }
 
     }
 
     public void FireBallRelease() {
-        useFireBall = true;
-        if (fireball != null)
-            fireball.release(getX(), getY(), isFacingLeft());
+        if (fireball != null) {
+            if(!usedFireBall)
+                fireball.release(getX(), getY(), isFacingLeft());
+
+            //attack marks
+            isAttack = true;
+            usedFireBall = true;
+            attackTimeline.play();
+            //reset speed
+            SPEED = 4;
+        }
     }
 
     //updating character image
