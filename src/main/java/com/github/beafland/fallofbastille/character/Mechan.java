@@ -1,8 +1,11 @@
 package com.github.beafland.fallofbastille.character;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
+import javafx.util.Duration;
 
 import java.util.Objects;
 import java.util.Set;
@@ -22,10 +25,25 @@ public class Mechan extends Player{
     private final int JUMP_FORCE = 20;
     private final HealthBarUI healthBar;
 
+    private Player enemy;
+
+    private boolean isAttack = false;
+    private final Timeline attackTimeline;
+    private final Timeline fireTimeline;
+
     public Mechan(int x, int y) {
         super(x, y, 100);
         controller = new PlayerController(this, SPEED, JUMP_FORCE);
         healthBar = new HealthBarUI(100);
+
+        fireTimeline = new Timeline(new KeyFrame(Duration.seconds(0.05), e -> this.setFire(false)));
+        attackTimeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> isAttack = false));
+        attackTimeline.setCycleCount(Timeline.INDEFINITE);
+        fireTimeline.setCycleCount(Timeline.INDEFINITE);
+    }
+
+    public void setEnemy(Player enemy) {
+        this.enemy = enemy;
     }
 
     public void update(Set<KeyCode> keysPressed){
@@ -39,15 +57,17 @@ public class Mechan extends Player{
                     controller.moveRight();
                     setFacingLeft(false);
                 }
-                case SPACE -> controller.fire();
+                case SPACE -> fire();
             }
         }
 
+        //Change character status image
         if(keysPressed.contains(KeyCode.LEFT) || keysPressed.contains(KeyCode.RIGHT))
             setStatus(1);
         else
             setStatus(0);
 
+        //update character position
         controller.update();
     }
 
@@ -83,6 +103,49 @@ public class Mechan extends Player{
 
     public void Jump(){
         controller.Jump();
+    }
+
+    private void fire() {
+        if (!isAttack) {
+            this.setFire(true);
+            isAttack = true;
+
+            checkFireCollision();
+
+            //攻击后摇
+            attackTimeline.play();
+            fireTimeline.play();
+        }
+    }
+
+    private void checkFireCollision(){
+        double gunFireX = getX(); // gun fire 的 x 坐标
+
+        double mageX = enemy.getX(); // 获取 mage 的 x 坐标
+        double mageY = enemy.getY(); // 获取 mage 的 y 坐标
+
+
+        if (!isFacingLeft()) {
+            // 如果人物朝向右边，则 gun fire 的 x 坐标为人物的 x 坐标加上攻击范围
+            gunFireX += attackRange;
+        } else {
+            // 如果人物朝向左边，则 gun fire 的 x 坐标为人物的 x 坐标减去攻击范围
+            gunFireX -= attackRange;
+        }
+
+        // 检查 gun fire 的 x 坐标是否与 mage 的 x 坐标重叠，并考虑两者的宽度
+        boolean overlapX = Math.abs(gunFireX - mageX) < (attackRange + (getWIDTH() * 0.6)) / 2;
+
+        // 检查是否在 y 轴上重叠（考虑到画板原点在左上角，需要反转 Y 坐标）
+        boolean overlapY = Math.abs(mageY - getY()) < (attackRange * 0.1 + HEIGHT) / 2;
+
+        // 如果在 x 和 y 轴上都重叠，则发生碰撞
+        if (overlapX && overlapY) {
+            // 计算对角色造成的伤害
+//            System.out.println((20 * (150 - Math.abs(mageX - mechanX))));
+//            enemy.damage((int) (10));
+            System.out.println("hit!");
+        }
     }
 
     private void setPlayerImage() {

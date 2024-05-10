@@ -41,7 +41,7 @@ public class Game extends Application implements GameEventListener {
     public static HealthBarUI mechanHealth;
     public static HealthBarUI mageHealth;
 
-    private String playerRole;
+    private String playerRole = "local";
 
     // 添加一个集合来跟踪按下的键
     private final Set<KeyCode> keysPressedMechan = new HashSet<>();
@@ -72,7 +72,7 @@ public class Game extends Application implements GameEventListener {
     public void initMenu(){
         ImageView imageView = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/cover.png"))));
 
-        Button startButton = new Button("Start Game");
+        Button startButton = new Button("Start Local Game");
         startButton.setPrefSize(200, 100);
         startButton.setOnAction(event -> initGame());
 
@@ -142,12 +142,19 @@ public class Game extends Application implements GameEventListener {
         rbMage = new RadioButton("Mage");
         rbMage.setToggleGroup(group);
 
+        if (isHost) {
+            rbMechan.setSelected(true); // 默认选择 Mechan 角色
+        } else {
+            rbMage.setSelected(true); // 默认选择 Mage 角色
+        }
+
         Button readyButton = new Button("Ready");
         readyButton.setOnAction(event -> {
             String selectedRole = ((RadioButton) group.getSelectedToggle()).getText();
             playerRole = selectedRole;
             client.send("RoleSelected:" + selectedRole); // Notify server of role selection
             client.send("Ready:" + selectedRole); // Notify server that this client is ready
+            readyButton.setDisable(true); // 禁用按钮
         });
 
         VBox vbox = new VBox(20);
@@ -178,25 +185,32 @@ public class Game extends Application implements GameEventListener {
             KeyCode code = event.getCode();
             System.out.println("[Game.java]KeyPressed:" + code.toString());
 
-            if (playerRole.equals("Mechan") && (code == KeyCode.LEFT || code == KeyCode.RIGHT || code == KeyCode.UP || code == KeyCode.SPACE)) {
+            if ((playerRole.equals("Mechan") || playerRole.equals("local")) &&
+                    (code == KeyCode.LEFT || code == KeyCode.RIGHT || code == KeyCode.UP || code == KeyCode.SPACE)) {
             	onKeyPressed(code);
             }
-            else if (playerRole.equals("Mage") && (code == KeyCode.A || code == KeyCode.D || code == KeyCode.W || code == KeyCode.G)) {
+            else if ((playerRole.equals("Mage") || playerRole.equals("local")) &&
+                    (code == KeyCode.A || code == KeyCode.D || code == KeyCode.W || code == KeyCode.G)) {
             	onKeyPressed(code);
             }
 
-            client.send("KeyPressed:" + code.toString());  // 发送键按下信息到服务器
+            if(!playerRole.equals("local"))
+                client.send("KeyPressed:" + code.toString());  // 发送键按下信息到服务器
         });
         canvas.setOnKeyReleased(event -> {
             KeyCode code = event.getCode();
 
-            if (playerRole.equals("Mechan") && (code == KeyCode.LEFT || code == KeyCode.RIGHT || code == KeyCode.UP || code == KeyCode.SPACE)) {
+            if ((playerRole.equals("Mechan") || playerRole.equals("local")) &&
+                    (code == KeyCode.LEFT || code == KeyCode.RIGHT || code == KeyCode.UP || code == KeyCode.SPACE)) {
             	onKeyReleased(code);
             }
-            else if (playerRole.equals("Mage") && (code == KeyCode.A || code == KeyCode.D || code == KeyCode.W || code == KeyCode.G)) {
+            else if ((playerRole.equals("Mage") || playerRole.equals("local")) &&
+                    (code == KeyCode.A || code == KeyCode.D || code == KeyCode.W || code == KeyCode.G)) {
             	onKeyReleased(code);
             }
-            client.send("KeyReleased:" + code.toString());  // 发送键释放信息到服务器
+
+            if(!playerRole.equals("local"))
+                client.send("KeyReleased:" + code.toString());  // 发送键释放信息到服务器
             onKeyReleased(code);
         });
 
@@ -210,6 +224,9 @@ public class Game extends Application implements GameEventListener {
     public void initPlayer() {
         mechan = new Mechan(1500, HEIGHT / 2); // 初始化玩家角色
         mage = new Mage(50, HEIGHT / 2); // 初始化玩家角色
+
+        mechan.setEnemy(mage);
+        mage.setEnemy(mechan);
     }
     
     @Override
@@ -219,11 +236,12 @@ public class Game extends Application implements GameEventListener {
         	if (!keysPressedMechan.contains(KeyCode.UP)) {
                 mechan.Jump();
                 keysPressedMechan.add(KeyCode.UP);
+                System.out.println("[Game.java][Mechan] Jumped: " + key);
             }
         }
         
-        else if (key == KeyCode.LEFT || key == KeyCode.RIGHT || key == KeyCode.UP || key == KeyCode.SPACE) {
-        	System.out.println("[Game.java][Mechan] Moved: " + key.toString());
+        else if (key == KeyCode.LEFT || key == KeyCode.RIGHT || key == KeyCode.SPACE) {
+        	System.out.println("[Game.java][Mechan] Moved: " + key);
     		keysPressedMechan.add(key);
     	}
 
@@ -231,11 +249,12 @@ public class Game extends Application implements GameEventListener {
 	        	if (!keysPressedMage.contains(KeyCode.W)) {
 	                mage.Jump();
 	                keysPressedMage.add(KeyCode.W);
+                    System.out.println("[Game.java][Mage] Jumped: " + key);
 	            }
 	    }
 
-        else if (key == KeyCode.A || key == KeyCode.D || key == KeyCode.W || key == KeyCode.G) {
-        	System.out.println("[Game.java][Mage] Moved: " + key.toString());
+        else if (key == KeyCode.A || key == KeyCode.D || key == KeyCode.G) {
+        	System.out.println("[Game.java][Mage] Moved: " + key);
     		keysPressedMage.add(key);
     	}
 
@@ -245,12 +264,12 @@ public class Game extends Application implements GameEventListener {
     public void onKeyReleased(KeyCode key) {
         // 处理按键释放逻辑
     	if (key == KeyCode.UP || key == KeyCode.DOWN || key == KeyCode.LEFT || key == KeyCode.RIGHT || key == KeyCode.SPACE) {
-    		System.out.println("[Game.java]" + playerRole + " Removed: " + key.toString());
+    		System.out.println("[Game.java]" + playerRole + " Removed: " + key);
     		keysPressedMechan.remove(key);
     	}
 
     	else if (key == KeyCode.W || key == KeyCode.S || key == KeyCode.A || key == KeyCode.D || key == KeyCode.G) {
-	    		System.out.println("[Game.java]" + playerRole + " Removed: " + key.toString());
+	    		System.out.println("[Game.java]" + playerRole + " Removed: " + key);
 	    		keysPressedMage.remove(key);
 	    		if (key == KeyCode.G) {
 	                mage.FireBallRelease();

@@ -3,32 +3,22 @@ package com.github.beafland.fallofbastille.character;
 import com.github.beafland.fallofbastille.Game;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
-import javafx.scene.input.KeyCode;
 import javafx.util.Duration;
 
-import java.util.Set;
 
 public class PlayerController {
     private static final double GRAVITY = 0.4;
     private final Player player;
-    private final Timeline attackTimeline;
-    private final Timeline fireTimeline;
 
     private final int SPEED;
     private final int JUMP_FORCE;
     private double yVelocity = 0;
     private int JumpingChange = 2;
-    private boolean isAttack = false;
 
     public PlayerController(Player player, int SPEED, int JUMP_FORCE) {
         this.player = player;
         this.SPEED = SPEED;
         this.JUMP_FORCE = JUMP_FORCE;
-
-        fireTimeline = new Timeline(new KeyFrame(Duration.seconds(0.05), e -> player.setFire(false)));
-        attackTimeline = new Timeline(new KeyFrame(Duration.seconds(1), e -> isAttack = false));
-        attackTimeline.setCycleCount(Timeline.INDEFINITE);
-        fireTimeline.setCycleCount(Timeline.INDEFINITE);
     }
 
     public void update() {
@@ -71,21 +61,11 @@ public class PlayerController {
             }
         }
 
+        //重置站姿
         if (yVelocity != 0) {
             player.setStatus(2);
         }
 
-    }
-
-    public void fire() {
-        if (!isAttack) {
-            player.setFire(true);
-            isAttack = true;
-            System.out.println("Fire!");
-            player.setHealth(player.getHealth() - 20);
-            attackTimeline.play();
-            fireTimeline.play();
-        }
     }
 
     public void moveLeft() {
