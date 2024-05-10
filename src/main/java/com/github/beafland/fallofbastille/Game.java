@@ -9,16 +9,11 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
-import javafx.scene.control.RadioButton;
-import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
@@ -117,7 +112,6 @@ public class Game extends Application implements GameEventListener {
         }
     }
 
-
     private void joinGame() {
         // Assume the server is on localhost for simplicity
         try {
@@ -129,39 +123,49 @@ public class Game extends Application implements GameEventListener {
 
     public void showRoleSelection(Stage primaryStage, boolean isHost) {
         ToggleGroup group = new ToggleGroup();
-        rbMechan = new RadioButton("Mechan");
-        rbMechan.setToggleGroup(group);
-        rbMage = new RadioButton("Mage");
-        rbMage.setToggleGroup(group);
+        ImageView mechanImage = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/mechan/mechanician.png"))));
+        ToggleButton mechanButton = new ToggleButton();
+        mechanButton.setGraphic(mechanImage);
+        mechanButton.setToggleGroup(group);
 
-        if (isHost) {
-            rbMechan.setSelected(true); // 默认选择 Mechan 角色
-        } else {
-            rbMage.setSelected(true); // 默认选择 Mage 角色
-        }
+        ImageView mageImage = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/Mage/mage.png"))));
+        ToggleButton mageButton = new ToggleButton();
+        mageButton.setGraphic(mageImage);
+        mageButton.setToggleGroup(group);
 
-        Button readyButton = new Button("Ready");
-        readyButton.setOnAction(event -> {
-            String selectedRole = ((RadioButton) group.getSelectedToggle()).getText();
-            playerRole = selectedRole;
-            client.send("RoleSelected:" + selectedRole); // Notify server of role selection
-            client.send("Ready:" + selectedRole); // Notify server that this client is ready
-            readyButton.setDisable(true); // 禁用按钮
+//        if (!isHost) {
+//            mechanButton.setSelected(true); // 默认选择 Mechan 角色
+//        } else {
+//            mageButton.setSelected(true); // 默认选择 Mage 角色
+//        }
+
+        // 设置 ToggleGroup 的事件监听器，当选择角色后发送 "RoleSelected" 消息
+        group.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue == mechanButton) {
+                playerRole = "Mechan";
+                mageButton.setDisable(true); // 选中 Mage 按钮后禁用 Mechan 按钮
+            } else {
+                playerRole = "Mage";
+                mechanButton.setDisable(true); // 选中 Mechan 按钮后禁用 Mage 按钮
+            }
+            client.send("RoleSelected:" + playerRole); // 通知服务器角色已选择
+            client.send("Ready:" + playerRole); // 通知服务器此客户端已准备就绪
         });
 
-        VBox vbox = new VBox(20);
+        HBox vbox = new HBox(20); // 使用 VBox 布局
         vbox.setAlignment(Pos.CENTER);
-        vbox.getChildren().addAll(rbMechan, rbMage, readyButton);
+        vbox.getChildren().addAll(mageButton, mechanButton);
 
-        Scene roleSelectionScene = new Scene(vbox, WIDTH, HEIGHT);
+        StackPane root = new StackPane(vbox);
+        root.setBackground(new Background(new BackgroundFill(Color.DARKGREY, null, null)));
+        Scene roleSelectionScene = new Scene(root, WIDTH, HEIGHT);
         primaryStage.setScene(roleSelectionScene);
     }
-
 
     public void initGame() {
         //init players
         initPlayer();
-
+        System.out.println(playerRole);
         Canvas canvas = new Canvas(WIDTH, HEIGHT);
         StackPane root = new StackPane(canvas);
 
@@ -224,7 +228,7 @@ public class Game extends Application implements GameEventListener {
 
     @Override
     public void onKeyPressed(KeyCode key) {
-
+        //rewrite on Key Pressed logic
         if (key == KeyCode.UP) {
             if (!keysPressedMechan.contains(KeyCode.UP)) {
                 mechan.Jump();

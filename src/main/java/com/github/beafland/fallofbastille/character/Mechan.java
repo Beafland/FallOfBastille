@@ -11,22 +11,22 @@ import java.util.Objects;
 import java.util.Set;
 
 public class Mechan extends Player{
-    private static PlayerController controller;
-
-    //初始化角色图片，不知道为什么一定要这么写要不然找不到图片
+    //player images
     private final Image playerStandImage = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/mechan/mechanician.png")));
     private final Image playerMoveImage = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/mechan/mechanicianMove.gif")));
     private final Image playerJumpImage = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/mechan/mechanicianJump.gif")));
     private Image playerCurrImage = playerStandImage;
     private final Image gunFire = new Image(Objects.requireNonNull(Player.class.getResourceAsStream("/images/mechan/gunFire.png")));
 
+    //initialize player
+    private static PlayerController controller;
     private final int attackRange = 150;
     private final int SPEED = 5;
     private final int JUMP_FORCE = 20;
     private final HealthBarUI healthBar;
-
     private Player enemy;
 
+    //Attack component
     private boolean isAttack = false;
     private final Timeline attackTimeline;
     private final Timeline fireTimeline;
@@ -85,7 +85,7 @@ public class Mechan extends Player{
             gc.drawImage(playerCurrImage, getX(), getY(), WIDTH, HEIGHT);
         }
 
-//        if (isFire()) {
+        if (isFire()) {
             // 根据玩家角色的朝向决定是否进行水平翻转
             if (!isFacingLeft()) {
                 gc.save(); // 保存当前画布状态
@@ -96,7 +96,7 @@ public class Mechan extends Player{
             } else {
                 gc.drawImage(gunFire, getX() - attackRange, getY() - attackRange * 0.1 + HEIGHT / 2.0, attackRange, attackRange * 0.25);
             }
-//        }
+        }
 
         healthBar.draw(gc, getHealth(), true);
     }
@@ -142,8 +142,7 @@ public class Mechan extends Player{
         // 如果在 x 和 y 轴上都重叠，则发生碰撞
         if (overlapX && overlapY) {
             // 计算对角色造成的伤害
-//            System.out.println((20 * (150 - Math.abs(mageX - mechanX))));
-//            enemy.damage((int) (10));
+            enemy.damage((20));
             System.out.println("hit!");
         }
     }
