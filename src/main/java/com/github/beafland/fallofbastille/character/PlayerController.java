@@ -1,10 +1,6 @@
 package com.github.beafland.fallofbastille.character;
 
 import com.github.beafland.fallofbastille.Game;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-import javafx.util.Duration;
-
 
 public class PlayerController {
     private static final double GRAVITY = 0.4;
