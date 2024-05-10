@@ -133,18 +133,12 @@ public class Game extends Application implements GameEventListener {
         mageButton.setGraphic(mageImage);
         mageButton.setToggleGroup(group);
 
-//        if (!isHost) {
-//            mechanButton.setSelected(true); // 默认选择 Mechan 角色
-//        } else {
-//            mageButton.setSelected(true); // 默认选择 Mage 角色
-//        }
-
         // 设置 ToggleGroup 的事件监听器，当选择角色后发送 "RoleSelected" 消息
         group.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
-            if(newValue == mechanButton) {
+            if (newValue == mechanButton) {
                 playerRole = "Mechan";
                 mageButton.setDisable(true); // 选中 Mage 按钮后禁用 Mechan 按钮
-            } else {
+            } else if (newValue == mageButton) {
                 playerRole = "Mage";
                 mechanButton.setDisable(true); // 选中 Mechan 按钮后禁用 Mage 按钮
             }
@@ -180,7 +174,6 @@ public class Game extends Application implements GameEventListener {
 
         canvas.setOnKeyPressed(event -> {
             KeyCode code = event.getCode();
-            System.out.println("[Game.java]KeyPressed:" + code.toString());
 
             if ((playerRole.equals("Mechan") || playerRole.equals("local")) &&
                     (code == KeyCode.LEFT || code == KeyCode.RIGHT || code == KeyCode.UP || code == KeyCode.SPACE)) {
@@ -233,19 +226,15 @@ public class Game extends Application implements GameEventListener {
             if (!keysPressedMechan.contains(KeyCode.UP)) {
                 mechan.Jump();
                 keysPressedMechan.add(KeyCode.UP);
-                System.out.println("[Game.java][Mechan] Jumped: " + key);
             }
         } else if (key == KeyCode.LEFT || key == KeyCode.RIGHT || key == KeyCode.SPACE) {
-            System.out.println("[Game.java][Mechan] Moved: " + key);
             keysPressedMechan.add(key);
         } else if (key == KeyCode.W) {
             if (!keysPressedMage.contains(KeyCode.W)) {
                 mage.Jump();
                 keysPressedMage.add(KeyCode.W);
-                System.out.println("[Game.java][Mage] Jumped: " + key);
             }
         } else if (key == KeyCode.A || key == KeyCode.D || key == KeyCode.G) {
-            System.out.println("[Game.java][Mage] Moved: " + key);
             keysPressedMage.add(key);
         }
 
@@ -255,10 +244,8 @@ public class Game extends Application implements GameEventListener {
     public void onKeyReleased(KeyCode key) {
         // 处理按键释放逻辑
         if (key == KeyCode.UP || key == KeyCode.DOWN || key == KeyCode.LEFT || key == KeyCode.RIGHT || key == KeyCode.SPACE) {
-            System.out.println("[Game.java]" + playerRole + " Removed: " + key);
             keysPressedMechan.remove(key);
         } else if (key == KeyCode.W || key == KeyCode.S || key == KeyCode.A || key == KeyCode.D || key == KeyCode.G) {
-            System.out.println("[Game.java]" + playerRole + " Removed: " + key);
             keysPressedMage.remove(key);
             if (key == KeyCode.G) {
                 mage.FireBallRelease();

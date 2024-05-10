@@ -26,52 +26,6 @@ public class GameServer {
     }
 
     public void startServer() throws IOException {
-    	/*
-        try {
-            serverSocket = new ServerSocket(port);
-            System.out.println("Server started on port " + port);
-            while (running) {
-                Socket clientSocket = serverSocket.accept();
-                System.out.println("Client connected: " + clientSocket.getInetAddress());
-                pool.execute(new ClientHandler(clientSocket, this));
-            }
-        } catch (IOException e) {
-            System.out.println("Server exception: " + e.getMessage());
-            e.printStackTrace();
-        } finally {
-            stopServer();
-        }*/
-    	
-    	/*
-    	serverSocketOne = new ServerSocket(5555);
-    	
-        System.out.println("Waiting for players to connect...");
-
-        playerOne = serverSocketOne.accept();
-        System.out.println("Player One connected: " + playerOne.getInetAddress());
-
-        playerTwo = serverSocketOne.accept();
-        System.out.println("Player Two connected: " + playerTwo.getInetAddress());
-
-        // 仅在两个玩家都连接后启动线程
-        Thread playerOneHandler = new PlayerHandler(playerOne, playerTwo, "Mechan");
-        Thread playerTwoHandler = new PlayerHandler(playerTwo, playerOne, "Mage");
-        playerOneHandler.start();
-        playerTwoHandler.start();
-        */
-    	
-    	/*
-        new Thread(() -> {
-            try {
-                GameServer server = new GameServer(5555);
-                server.startServer();  // This call is blocking, so it's run on a separate thread
-            } catch (IOException e) {
-                System.out.println("Failed to start server: " + e.getMessage());
-                e.printStackTrace();
-            }
-        }).start();
-        */
-
     	
     	    Thread serverThread = new Thread(() -> {
     	        try {
@@ -87,8 +41,8 @@ public class GameServer {
     	            System.out.println("Player Two connected: " + playerTwo.getInetAddress());
 
     	            // Start handling players after both are connected
-    	            Thread playerOneHandler = new PlayerHandler(playerOne, playerTwo, "Mechan", true, playerReadiness, playerRoles);
-    	            Thread playerTwoHandler = new PlayerHandler(playerTwo, playerOne, "Mage", false, playerReadiness, playerRoles);
+    	            Thread playerOneHandler = new PlayerHandler(playerOne, playerTwo, true, playerReadiness, playerRoles);
+    	            Thread playerTwoHandler = new PlayerHandler(playerTwo, playerOne, false, playerReadiness, playerRoles);
     	            playerOneHandler.start();
     	            playerTwoHandler.start();
     	        } catch (IOException e) {
@@ -127,58 +81,18 @@ public class GameServer {
         	System.out.println(inputLine);
         }
     }
-
-    /*
-    // Attempt to create or join a room
-    public synchronized boolean tryJoinRoom(int roomNumber, ClientHandler handler) {
-        if (roomNumber < 1 || roomNumber > 9999) {
-            return false; // Invalid room number
-        }
-        GameRoom room = rooms.get(roomNumber);
-        if (room == null) {
-            // Create new room if it doesn't exist and the number is valid
-            room = new GameRoom(roomNumber);
-            rooms.put(roomNumber, room);
-        }
-        return room.addPlayer(handler); // Attempt to add player to the room
-    }
-	
-    // Notify the server that a battle in a room has finished
-    public synchronized void notifyBattleFinished(int roomNumber) {
-        rooms.remove(roomNumber); // Remove the room, making the number available again
-    }
-    */
-    // Example method to broadcast messages to all clients
-    /*
-    public synchronized void broadcastMessage(String message) {
-        for (ClientHandler clientHandler : clientHandlers.values()) {
-            clientHandler.sendMessage(message);
-        }
-    }
-    */
-
-    // Remove a client handler from the list
-    /*
-    public synchronized void removeClientHandler(ClientHandler handler) {
-        clientHandlers.remove(handler);
-        System.out.println("Client disconnected. Total clients: " + clientHandlers.size());
-    }
-    */
     
     private class PlayerHandler extends Thread {
         private Socket inputPlayer;
         private Socket outputPlayer;
-        private String playerRole; // 新增角色标识
         private Boolean isServer;
         private Map<Boolean, Boolean> playerReadiness;
         private Map<Boolean, String> playerRoles;
-        private Map<Boolean, Boolean> playerReady;
         
 
-        public PlayerHandler(Socket input, Socket output, String role, Boolean isServer, ConcurrentHashMap<Boolean, Boolean> playerReadiness, ConcurrentHashMap<Boolean, String> playerRoles) {
+        public PlayerHandler(Socket input, Socket output, Boolean isServer, ConcurrentHashMap<Boolean, Boolean> playerReadiness, ConcurrentHashMap<Boolean, String> playerRoles) {
         	this.inputPlayer = input;
             this.outputPlayer = output;
-            this.playerRole = role;
             this.isServer = isServer;
             this.playerReadiness = playerReadiness;
             this.playerRoles = playerRoles;
@@ -213,27 +127,22 @@ public class GameServer {
                             // 处理接收到的信息
     		                while ((message = reader.readLine()) != null) {
     		                	if (message.startsWith("Ready:")) {
-    		                		
     		                		String selectedRole = message.split(":")[1];
     		                		
     		                		// Do not process if already selected
-    		                		if (playerReadiness.containsKey(!isServer) && playerRoles.get(!isServer).equals(selectedRole)) {
-    		                        	System.out.println("Role: " + selectedRole + "is already selected");
-    		                        	writer.println("RoleSelectionFailed:" + playerRole);
-    		                        } else {
-    			                        playerRoles.put(isServer, selectedRole);
-    			                        playerReadiness.put(isServer, true);
-    			                        System.out.println("[Gameserver.java] Role ready: " + isServer + " | " + selectedRole);
-    			                        
-    			                        String oppoRole;
-    			                        if (playerRole.equals("Mechan")) {
-    			                        	oppoRole = "Mage";
-    			                        } else {
-    			                        	oppoRole = "Mechan";
-    			                        }
-    			                        
-    			                        writer.println("Role:" + oppoRole);
-    		                		}
+    		                		
+                                    playerRoles.put(isServer, selectedRole);
+                                    playerReadiness.put(isServer, true);
+                                    
+                                    String oppoRole;
+                                    if (selectedRole.equals("Mechan")) {
+                                        oppoRole = "Mage";
+                                    } else {
+                                        oppoRole = "Mechan";
+                                    }
+                                    
+                                    writer.println("Role:" + oppoRole);
+                                
     		                        checkAndStartGame();
     		                	}
     		                	
@@ -246,10 +155,6 @@ public class GameServer {
     		                	else {
     		                		writer.println(message); // 转发消息
     		                	}
-    		                    
-    		                    System.out.println("Sent to other player: " + this.playerRole + message);
-    		                    //outputPlayer.getOutputStream().write((message + "\n").getBytes());
-    		                    //outputPlayer.getOutputStream().flush();
 		                		}
                         }
                     } else {
@@ -265,9 +170,6 @@ public class GameServer {
                     System.err.println("Failed to handle client connection: " + e.getMessage());
                     e.printStackTrace();
                 }
-
-                
-
         }
 
     }
