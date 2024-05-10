@@ -10,6 +10,7 @@ import java.net.UnknownHostException;
 import javafx.application.Platform;
 import javafx.scene.input.KeyCode;
 
+
 public class GameClient {
     private Socket socket;
     private PrintWriter out;
@@ -32,14 +33,18 @@ public class GameClient {
         }
     	
         // 接收并设置角色
+    	/*
         String roleInfo = in.readLine();
         if (roleInfo.startsWith("Role:")) {
             this.playerRole = roleInfo.substring(5);
             System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAA: "+ this.playerRole);
         }
+        */
     	
     	new Thread(this::listenToServer).start();
     }
+    
+    
     
     public String getPlayerRole() {
     	return playerRole;
@@ -49,14 +54,24 @@ public class GameClient {
         try {
             String serverMessage;
             while ((serverMessage = in.readLine()) != null) {
-            	System.out.println("Client received from server: "+ serverMessage);
-                if (serverMessage.startsWith("KeyPressed:")) {
+            	// Role selection
+            	if (serverMessage.startsWith("Role:")) {
+            		System.out.println("Role updated: " + serverMessage.split(":")[1]);
+                    eventListener.updateRole(serverMessage.split(":")[1]);
+                    playerRole = serverMessage.split(":")[1];
+                }
+            	else if (serverMessage.startsWith("StartGame")) {
+            		System.out.println("Game client received game start command");
+            		startGame();
+            	}
+            	else if (serverMessage.startsWith("KeyPressed:")) {
                     String keyCode = serverMessage.substring(11);
                     handleKeyPress(keyCode);
                 } else if (serverMessage.startsWith("KeyReleased:")) {
                     String keyCode = serverMessage.substring(12);
                     handleKeyRelease(keyCode);
                 }
+                
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -76,11 +91,9 @@ public class GameClient {
         		    return;
         		}
         		
-        		
         		Platform.runLater(() -> {
         		    eventListener.onKeyPressed(KeyCode.valueOf(keyCode));
         		});
-        		// eventListener.onKeyPressed(KeyCode.getKeyCode(keyCode));
         	}
         }
         else {
@@ -113,6 +126,15 @@ public class GameClient {
         }
         
         // 这里可以调用GameRoom或者其他管理游戏逻辑的类的方法停止移动等
+    }
+    
+
+
+    private void startGame() {
+        // Transition to game scene
+    	Platform.runLater(() -> {
+            eventListener.initGame();
+        });
     }
 
     public void send(String message) {

@@ -4,6 +4,7 @@ import com.github.beafland.fallofbastille.character.HealthBarUI;
 import com.github.beafland.fallofbastille.character.Mage;
 import com.github.beafland.fallofbastille.character.Mechan;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -18,6 +19,9 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.ToggleGroup;
+
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -26,6 +30,8 @@ import java.util.Set;
 
 public class Game extends Application implements GameEventListener {
 	private GameClient client;
+	
+	private Stage primaryStage;
 	
     public static final int WIDTH = 2000;
     public static final int HEIGHT = 1000;
@@ -40,6 +46,10 @@ public class Game extends Application implements GameEventListener {
     // 添加一个集合来跟踪按下的键
     private final Set<KeyCode> keysPressedMechan = new HashSet<>();
     private final Set<KeyCode> keysPressedMage = new HashSet<>();
+    
+    // UI
+    private RadioButton rbMechan;
+    private RadioButton rbMage;
 
     public static void main(String[] args) {
         launch(args);
@@ -48,38 +58,108 @@ public class Game extends Application implements GameEventListener {
     @Override
     public void start(Stage primaryStage) throws IOException {
     	String server = "127.0.0.1";
+    	this.primaryStage = primaryStage;
 
-    	client = new GameClient(server, 5555, this);
-    	this.playerRole = client.getPlayerRole();
-    	System.out.println("Assigned role: " + playerRole);
+    	//client = new GameClient(server, 5555, this);
+    	//this.playerRole = client.getPlayerRole();
+    	//System.out.println("Assigned role: " + playerRole);
         primaryStage.setTitle("Fall Of Bastille");
-        initMenu(primaryStage);
+        initMenu();
     }
+    
+    
 
-    public void initMenu(Stage primaryStage){
-        //add cover image
-        ImageView imageView = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/cover.png")))); // 使用getResource()获取资源
+    public void initMenu(){
+        ImageView imageView = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/cover.png"))));
 
-        // 创建菜单按钮
         Button startButton = new Button("Start Game");
-        startButton.setPrefSize(200, 100); // 配置按钮大小
-        startButton.setOnAction(event -> initGame(primaryStage)); // 点击按钮开始游戏
+        startButton.setPrefSize(200, 100);
+        startButton.setOnAction(event -> initGame());
 
-        // 将按钮和图片添加到垂直布局中
-        VBox vbox = new VBox(20); // 设置垂直间距
+        Button hostButton = new Button("Be the Host");
+        hostButton.setPrefSize(200, 100);
+        hostButton.setOnAction(event -> {
+            startServer();
+            showRoleSelection(primaryStage, true); // Show role selection UI
+        });
+
+        Button joinButton = new Button("Join a Game");
+        joinButton.setPrefSize(200, 100);
+        joinButton.setOnAction(event -> {
+            joinGame(); // Join the existing server
+            showRoleSelection(primaryStage, false); // Show role selection UI
+        });
+
+        VBox vbox = new VBox(20);
         vbox.setAlignment(Pos.CENTER);
-        vbox.getChildren().addAll(imageView, startButton);
+        vbox.getChildren().addAll(imageView, startButton, hostButton, joinButton);
 
-        // 设置场景的背景颜色
         StackPane root = new StackPane(vbox);
         root.setBackground(new Background(new BackgroundFill(Color.DARKGREY, null, null)));
         Scene menuScene = new Scene(root, WIDTH, HEIGHT);
-
         primaryStage.setScene(menuScene);
         primaryStage.show();
     }
+    
+    public void updateOpponentRole(String role) {
+        Platform.runLater(() -> {
+            if (role.equals("Mechan")) {
+                rbMechan.setDisable(true);
+                rbMechan.setTextFill(Color.GRAY); // Set the font color to gray
+            } else if (role.equals("Mage")) {
+                rbMage.setDisable(true);
+                rbMage.setTextFill(Color.GRAY); // Set the font color to gray
+            }
+        });
+    }
 
-    public void initGame(Stage primaryStage){
+    
+    private void startServer() {
+        try {
+            GameServer server = new GameServer(5555);
+            server.startServer();  // Start server synchronously to ensure it's ready
+            client = new GameClient("127.0.0.1", 5555, this);  // Connect only after server is confirmed running
+        } catch (IOException e) {
+            System.out.println("Failed to start server or connect: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+
+    private void joinGame() {
+        // Assume the server is on localhost for simplicity
+        try {
+            this.client = new GameClient("127.0.0.1", 5555, this);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public void showRoleSelection(Stage primaryStage, boolean isHost) {
+        ToggleGroup group = new ToggleGroup();
+        rbMechan = new RadioButton("Mechan");
+        rbMechan.setToggleGroup(group);
+        rbMage = new RadioButton("Mage");
+        rbMage.setToggleGroup(group);
+
+        Button readyButton = new Button("Ready");
+        readyButton.setOnAction(event -> {
+            String selectedRole = ((RadioButton) group.getSelectedToggle()).getText();
+            playerRole = selectedRole;
+            client.send("RoleSelected:" + selectedRole); // Notify server of role selection
+            client.send("Ready:" + selectedRole); // Notify server that this client is ready
+        });
+
+        VBox vbox = new VBox(20);
+        vbox.setAlignment(Pos.CENTER);
+        vbox.getChildren().addAll(rbMechan, rbMage, readyButton);
+
+        Scene roleSelectionScene = new Scene(vbox, WIDTH, HEIGHT);
+        primaryStage.setScene(roleSelectionScene);
+    }
+
+
+    public void initGame(){
         //init players
         initPlayer();
 
@@ -96,7 +176,7 @@ public class Game extends Application implements GameEventListener {
         canvas.setFocusTraversable(true); // 让canvas能够接收焦点和键盘事件
         canvas.setOnKeyPressed(event -> {
             KeyCode code = event.getCode();
-            System.out.println("KeyPressed:" + code.toString());
+            System.out.println("[Game.java]KeyPressed:" + code.toString());
 
             if (playerRole.equals("Mechan") && (code == KeyCode.LEFT || code == KeyCode.RIGHT || code == KeyCode.UP || code == KeyCode.SPACE)) {
             	onKeyPressed(code);
@@ -189,6 +269,11 @@ public class Game extends Application implements GameEventListener {
                 keysPressedMage.add(KeyCode.W);
         }
     }
+
+	@Override
+	public void updateRole(String role) {
+		this.playerRole = role;
+	}
 
 }
 

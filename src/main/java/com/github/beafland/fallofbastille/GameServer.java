@@ -14,6 +14,8 @@ public class GameServer {
     private final int port;
     private boolean running = true;
     private final ExecutorService pool;
+    private ConcurrentHashMap<Boolean, String> playerRoles = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Boolean, Boolean> playerReadiness = new ConcurrentHashMap<>();
     //private final Map<Integer, GameRoom> rooms; // Map of room numbers to GameRoom instances
 	//private Map<GameRoom, ClientHandler> clientHandlers;
 
@@ -40,6 +42,7 @@ public class GameServer {
             stopServer();
         }*/
     	
+    	/*
     	serverSocketOne = new ServerSocket(5555);
     	
         System.out.println("Waiting for players to connect...");
@@ -51,11 +54,52 @@ public class GameServer {
         System.out.println("Player Two connected: " + playerTwo.getInetAddress());
 
         // 仅在两个玩家都连接后启动线程
-        Thread playerOneHandler = new PlayerHandler(playerOne, playerTwo, "Mechan", "1st");
-        Thread playerTwoHandler = new PlayerHandler(playerTwo, playerOne, "Mage", "2nd");
+        Thread playerOneHandler = new PlayerHandler(playerOne, playerTwo, "Mechan");
+        Thread playerTwoHandler = new PlayerHandler(playerTwo, playerOne, "Mage");
         playerOneHandler.start();
         playerTwoHandler.start();
+        */
+    	
+    	/*
+        new Thread(() -> {
+            try {
+                GameServer server = new GameServer(5555);
+                server.startServer();  // This call is blocking, so it's run on a separate thread
+            } catch (IOException e) {
+                System.out.println("Failed to start server: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }).start();
+        */
+
+    	
+    	    Thread serverThread = new Thread(() -> {
+    	        try {
+    	            serverSocketOne = new ServerSocket(port);
+    	            System.out.println("Server is waiting for players to connect...");
+
+    	            // Accept first player
+    	            playerOne = serverSocketOne.accept();
+    	            System.out.println("Player One connected: " + playerOne.getInetAddress());
+
+    	            // Accept second player
+    	            playerTwo = serverSocketOne.accept();
+    	            System.out.println("Player Two connected: " + playerTwo.getInetAddress());
+
+    	            // Start handling players after both are connected
+    	            Thread playerOneHandler = new PlayerHandler(playerOne, playerTwo, "Mechan", true, playerReadiness, playerRoles);
+    	            Thread playerTwoHandler = new PlayerHandler(playerTwo, playerOne, "Mage", false, playerReadiness, playerRoles);
+    	            playerOneHandler.start();
+    	            playerTwoHandler.start();
+    	        } catch (IOException e) {
+    	            System.err.println("Server failed to start: " + e.getMessage());
+    	            e.printStackTrace();
+    	        }
+    	    });
+    	    serverThread.start();
+
     }
+    
 
     public void stopServer() {
         try {
@@ -125,48 +169,110 @@ public class GameServer {
         private Socket inputPlayer;
         private Socket outputPlayer;
         private String playerRole; // 新增角色标识
-        public String debugName;
+        private Boolean isServer;
+        private Map<Boolean, Boolean> playerReadiness;
+        private Map<Boolean, String> playerRoles;
+        private Map<Boolean, Boolean> playerReady;
+        
 
-        public PlayerHandler(Socket input, Socket output, String role, String name) {
-            this.inputPlayer = input;
+        public PlayerHandler(Socket input, Socket output, String role, Boolean isServer, ConcurrentHashMap<Boolean, Boolean> playerReadiness, ConcurrentHashMap<Boolean, String> playerRoles) {
+        	this.inputPlayer = input;
             this.outputPlayer = output;
             this.playerRole = role;
-            this.debugName = name;
+            this.isServer = isServer;
+            this.playerReadiness = playerReadiness;
+            this.playerRoles = playerRoles;
+        }
+        
+        private void checkAndStartGame() throws IOException {
+        	System.out.println("Player readiness keys: " + playerReadiness.keySet());
+
+            if (playerReadiness.size() == 2 && playerReadiness.values().stream().allMatch(r -> r)) {  // Check if all players are ready
+
+                PrintWriter out = new PrintWriter(inputPlayer.getOutputStream(), true);
+                out.println("StartGame");
+                out = new PrintWriter(outputPlayer.getOutputStream(), true);
+                out.println("StartGame");
+
+            }
         }
 
         @Override
         public void run() {
             try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(inputPlayer.getInputStream()));
-                PrintWriter writer = new PrintWriter(outputPlayer.getOutputStream(), true);
+                //writer.println("Role:" + playerRole);
                 
-                String message;
-                
-                System.out.println("Name: " + debugName + " | " + playerRole);
-                writer.println("Role:" + playerRole);
-                
-                while ((message = reader.readLine()) != null) {
-                    writer.println(message); // 转发消息
-                    System.out.println("Sent to other player: " + this.playerRole + message);
-                    //outputPlayer.getOutputStream().write((message + "\n").getBytes());
-                    //outputPlayer.getOutputStream().flush();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
                 try {
-                    inputPlayer.close();
-                    outputPlayer.close();
+                    // 仅在 inputPlayer 和 outputPlayer 非 null 时继续
+                    if (inputPlayer != null && outputPlayer != null) {
+                    	BufferedReader reader = new BufferedReader(new InputStreamReader(inputPlayer.getInputStream()));
+                        PrintWriter writer = new PrintWriter(outputPlayer.getOutputStream(), true);
+                        
+                        String message;
+                        while ((message = reader.readLine()) != null) {
+                            // 处理接收到的信息
+    		                while ((message = reader.readLine()) != null) {
+    		                	if (message.startsWith("Ready:")) {
+    		                		
+    		                		String selectedRole = message.split(":")[1];
+    		                		
+    		                		// Do not process if already selected
+    		                		if (playerReadiness.containsKey(!isServer) && playerRoles.get(!isServer).equals(selectedRole)) {
+    		                        	System.out.println("Role: " + selectedRole + "is already selected");
+    		                        	writer.println("RoleSelectionFailed:" + playerRole);
+    		                        } else {
+    			                        playerRoles.put(isServer, selectedRole);
+    			                        playerReadiness.put(isServer, true);
+    			                        System.out.println("[Gameserver.java] Role ready: " + isServer + " | " + selectedRole);
+    			                        
+    			                        String oppoRole;
+    			                        if (playerRole.equals("Mechan")) {
+    			                        	oppoRole = "Mage";
+    			                        } else {
+    			                        	oppoRole = "Mechan";
+    			                        }
+    			                        
+    			                        writer.println("Role:" + oppoRole);
+    		                		}
+    		                        checkAndStartGame();
+    		                	}
+    		                	
+    		                	else if (message.startsWith("RoleSelected:")) {
+    		                		String selectedRole = message.split(":")[1];
+    		                        if (playerReadiness.containsKey(!isServer) && playerRoles.get(!isServer).equals(selectedRole)) {
+    		                        	System.out.println("Role: " + selectedRole + "is already selected");
+    		                        }
+    		                	}
+    		                	else {
+    		                		writer.println(message); // 转发消息
+    		                	}
+    		                    
+    		                    System.out.println("Sent to other player: " + this.playerRole + message);
+    		                    //outputPlayer.getOutputStream().write((message + "\n").getBytes());
+    		                    //outputPlayer.getOutputStream().flush();
+		                		}
+                        }
+                    } else {
+                        System.err.println("One of the sockets is null.");
+                    }
+		            } catch (IOException e) {
+		            		e.printStackTrace();
+    			    } finally {
+		                    inputPlayer.close();
+		                    outputPlayer.close();
+                    } 
                 } catch (IOException e) {
-                    System.err.println("Failed to close sockets: " + e.getMessage());
+                    System.err.println("Failed to handle client connection: " + e.getMessage());
+                    e.printStackTrace();
                 }
-            }
+
+                
+
         }
 
     }
     
     
-
     public static void main(String[] args) throws IOException {
         int port = 5555; // Example port number
         GameServer server = new GameServer(port);
