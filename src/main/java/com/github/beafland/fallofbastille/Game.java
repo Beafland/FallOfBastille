@@ -20,6 +20,7 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 public class Game extends Application implements GameEventListener {
@@ -113,13 +114,33 @@ public class Game extends Application implements GameEventListener {
     }
 
     private void joinGame() {
-        // Assume the server is on localhost for simplicity
-        try {
-            this.client = new GameClient("127.0.0.1", 5555, this);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        // 弹出对话框让用户输入服务器地址
+        TextInputDialog dialog = new TextInputDialog("127.0.0.1");
+        dialog.setTitle("Join a Game");
+        dialog.setHeaderText("Enter Host IP Address");
+        dialog.setContentText("IP Address:");
+
+        // 传统的阻塞式模态对话框
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(hostIp -> {
+            try {
+                this.client = new GameClient(hostIp, 5555, this);  // 使用用户输入的IP地址创建客户端
+                showRoleSelection(primaryStage, false);  // 显示角色选择界面
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert("Connection Error", "Failed to connect to server: " + e.getMessage());
+            }
+        });
     }
+    
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
 
     public void showRoleSelection(Stage primaryStage, boolean isHost) {
         ToggleGroup group = new ToggleGroup();

@@ -144,18 +144,15 @@ public class GameServer {
                                     writer.println("Role:" + oppoRole);
                                 
     		                        checkAndStartGame();
-    		                	}
-    		                	
-    		                	else if (message.startsWith("RoleSelected:")) {
+    		                	} else if (message.startsWith("RoleSelected:")) {
     		                		String selectedRole = message.split(":")[1];
     		                        if (playerReadiness.containsKey(!isServer) && playerRoles.get(!isServer).equals(selectedRole)) {
     		                        	System.out.println("Role: " + selectedRole + "is already selected");
     		                        }
-    		                	}
-    		                	else {
+    		                	} else {
     		                		writer.println(message); // 转发消息
     		                	}
-		                		}
+    		                }
                         }
                     } else {
                         System.err.println("One of the sockets is null.");
