@@ -3,7 +3,11 @@
 
 A two-player fighting game based on the JavaFX framework, currently featuring two characters: a spell wizard and a shotgun-wielding mechanic!
 
+-----------------------------------------------------------------------------------------
 
+Run the "Launcher.Java" start the game play
+
+-----------------------------------------------------------------------------------------
 # Character:
 ![image](src/main/resources/images/Mage/mage.png)
 

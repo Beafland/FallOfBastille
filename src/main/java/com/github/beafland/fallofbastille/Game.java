@@ -52,7 +52,7 @@ public class Game extends Application implements GameEventListener {
     }
 
     public void initMenu() {
-    	ImageView imageView = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/cover.png"))));
+        ImageView imageView = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/cover.png"))));
 
 
         Button startButton = new Button("Start Local Game");
@@ -134,7 +134,13 @@ public class Game extends Application implements GameEventListener {
         mageButton.setGraphic(mageImage);
         mageButton.setToggleGroup(group);
 
-        // Set an event listener for the ToggleGroup to send a "RoleSelected" message after a role is selected
+        // 创建一个包含控制说明的文本标签
+        Label controlInstructions = new Label("Mechan controls: Arrow keys (↑ ↓ ← →) to move, Space to attack\n"
+                + "Mage controls: W, A, S, D to move, G to charge and release attack");
+        controlInstructions.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: white; -fx-background-color: #333333; -fx-padding: 10px;");
+        controlInstructions.setAlignment(Pos.CENTER);
+
+        // 设置ToggleGroup的事件监听，当选择角色后发送"RoleSelected"消息
         group.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == mechanButton) {
                 playerRole = "Mechan";
@@ -147,11 +153,17 @@ public class Game extends Application implements GameEventListener {
             client.send("Ready:" + playerRole); // Notify the server that this client is ready
         });
 
-        HBox vbox = new HBox(20); // Use VBox layout
-        vbox.setAlignment(Pos.CENTER);
-        vbox.getChildren().addAll(mageButton, mechanButton);
+        // 创建水平布局容纳角色选择按钮
+        HBox buttonBox = new HBox(20);
+        buttonBox.setAlignment(Pos.CENTER);
+        buttonBox.getChildren().addAll(mechanButton, mageButton);
 
-        StackPane root = new StackPane(vbox);
+        // 创建垂直布局来组织文本标签和按钮
+        VBox layout = new VBox(20);
+        layout.setAlignment(Pos.CENTER);
+        layout.getChildren().addAll(controlInstructions, buttonBox);
+
+        StackPane root = new StackPane(layout);
         root.setBackground(new Background(new BackgroundFill(Color.DARKGREY, null, null)));
         Scene roleSelectionScene = new Scene(root, WIDTH, HEIGHT);
         primaryStage.setScene(roleSelectionScene);
