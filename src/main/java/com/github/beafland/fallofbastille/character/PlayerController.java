@@ -30,7 +30,6 @@ public class PlayerController {
             JumpingChange = 2;
         }
 
-        // 平台碰撞检测
         int leftPlatformTopY = 650;
         int leftPlatformStartX = 0;
         int leftPlatformEndX = 500;

@@ -10,7 +10,6 @@ import java.net.UnknownHostException;
 import javafx.application.Platform;
 import javafx.scene.input.KeyCode;
 
-
 public class GameClient {
     private Socket socket;
     private PrintWriter out;
@@ -19,8 +18,8 @@ public class GameClient {
     private String playerRole;
 
     public GameClient(String serverAddress, int port, GameEventListener eventListener) throws IOException {
-    	this.eventListener = eventListener;
-    	try {
+        this.eventListener = eventListener;
+        try {
             socket = new Socket(serverAddress, port);
             out = new PrintWriter(socket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -31,108 +30,85 @@ public class GameClient {
             System.err.println("I/O Error: " + e.getMessage());
             throw e;
         }
-    	
-        // 接收并设置角色
-    	/*
-        String roleInfo = in.readLine();
-        if (roleInfo.startsWith("Role:")) {
-            this.playerRole = roleInfo.substring(5);
-            System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAA: "+ this.playerRole);
-        }
-        */
-    	
-    	new Thread(this::listenToServer).start();
+
+        new Thread(this::listenToServer).start();
     }
-    
-    
-    
+
     public String getPlayerRole() {
-    	return playerRole;
+        return playerRole;
     }
-    
+
     private void listenToServer() {
         try {
             String serverMessage;
             while ((serverMessage = in.readLine()) != null) {
-            	// Role selection
-            	if (serverMessage.startsWith("Role:")) {
-            		System.out.println("Role updated: " + serverMessage.split(":")[1]);
+                // Role selection
+                if (serverMessage.startsWith("Role:")) {
+                    System.out.println("Role updated: " + serverMessage.split(":")[1]);
                     eventListener.updateRole(serverMessage.split(":")[1]);
                     playerRole = serverMessage.split(":")[1];
-                }
-            	else if (serverMessage.startsWith("StartGame")) {
-            		System.out.println("Game client received game start command");
-            		startGame();
-            	}
-            	else if (serverMessage.startsWith("KeyPressed:")) {
+                } else if (serverMessage.startsWith("StartGame")) {
+                    System.out.println("Game client received game start command");
+                    startGame();
+                } else if (serverMessage.startsWith("KeyPressed:")) {
                     String keyCode = serverMessage.substring(11);
                     handleKeyPress(keyCode);
                 } else if (serverMessage.startsWith("KeyReleased:")) {
                     String keyCode = serverMessage.substring(12);
                     handleKeyRelease(keyCode);
                 }
-                
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-    
+
     private void handleKeyPress(String keyCode) {
-        // 根据按键码更新游戏状态，例如移动角色
-    	System.out.println("[GameClient.java]: "+ this.playerRole + " | " + keyCode);
+        // Update game state based on key press, e.g., move character
+        System.out.println("[GameClient.java]: " + this.playerRole + " | " + keyCode);
         if (playerRole.equals("Mage")) {
-        	if (keyCode.equals("LEFT") || keyCode.equals("RIGHT") || keyCode.equals("SPACE") || keyCode.equals("UP")) {
-        		System.out.println("[Mage] Oppo Key Pressed: " + keyCode);
-        		// debug
-        		KeyCode key = KeyCode.valueOf(keyCode);
-        		if (key == null) {
-        		    System.out.println("Invalid key code received: " + keyCode);
-        		    return;
-        		}
-        		
-        		Platform.runLater(() -> {
-        		    eventListener.onKeyPressed(KeyCode.valueOf(keyCode));
-        		});
-        	}
+            if (keyCode.equals("LEFT") || keyCode.equals("RIGHT") || keyCode.equals("SPACE") || keyCode.equals("UP")) {
+                System.out.println("[Mage] Oppo Key Pressed: " + keyCode);
+                KeyCode key = KeyCode.valueOf(keyCode);
+                if (key == null) {
+                    System.out.println("Invalid key code received: " + keyCode);
+                    return;
+                }
+
+                Platform.runLater(() -> {
+                    eventListener.onKeyPressed(KeyCode.valueOf(keyCode));
+                });
+            }
+        } else {
+            if (keyCode.equals("A") || keyCode.equals("D") || keyCode.equals("G") || keyCode.equals("W")) {
+                System.out.println("[Machan] Oppo Key Pressed: " + keyCode);
+                eventListener.onKeyPressed(KeyCode.valueOf(keyCode));
+            }
         }
-        else {
-        	if (keyCode.equals("A") || keyCode.equals("D") || keyCode.equals("G") || keyCode.equals("W")) {
-        		System.out.println("[Machan] Oppo Key Pressed: " + keyCode);
-        		eventListener.onKeyPressed(KeyCode.valueOf(keyCode));
-        	}
-        }
-        // 这里可以调用GameRoom或者其他管理游戏逻辑的类的方法
     }
 
     private void handleKeyRelease(String keyCode) {
-        // 处理按键释放
+        // Handle key release
         System.out.println("Key Released: " + keyCode);
-		// debug
-		KeyCode key = KeyCode.valueOf(keyCode);
-		if (key == null) {
-		    System.out.println("[2]Invalid key code received: " + keyCode);
-		    return;
-		}
-		
-        if (playerRole.equals("Mage")) {
-        	if (keyCode.equals("LEFT") || keyCode.equals("RIGHT") || keyCode.equals("SPACE") || keyCode.equals("UP")) {
-        		eventListener.onKeyReleased(KeyCode.valueOf(keyCode));
-        	}
+        KeyCode key = KeyCode.valueOf(keyCode);
+        if (key == null) {
+            System.out.println("[2]Invalid key code received: " + keyCode);
+            return;
         }
-        else {
-        	System.out.println("[Mechan] Oppo Key Pressed: " + keyCode);
-        	eventListener.onKeyReleased(KeyCode.valueOf(keyCode));
-        }
-        
-        // 这里可以调用GameRoom或者其他管理游戏逻辑的类的方法停止移动等
-    }
-    
 
+        if (playerRole.equals("Mage")) {
+            if (keyCode.equals("LEFT") || keyCode.equals("RIGHT") || keyCode.equals("SPACE") || keyCode.equals("UP")) {
+                eventListener.onKeyReleased(KeyCode.valueOf(keyCode));
+            }
+        } else {
+            System.out.println("[Mechan] Oppo Key Pressed: " + keyCode);
+            eventListener.onKeyReleased(KeyCode.valueOf(keyCode));
+        }
+    }
 
     private void startGame() {
         // Transition to game scene
-    	Platform.runLater(() -> {
+        Platform.runLater(() -> {
             eventListener.initGame();
         });
     }

@@ -32,7 +32,7 @@ public class AnimationLoop extends AnimationTimer {
 
     @Override
     public void handle(long now) {
-        // Clearing the canvas
+        // Clear the canvas
         gc.clearRect(0, 0, Game.WIDTH, Game.HEIGHT);
         gc.drawImage(backgroundImage, 0, 0, Game.WIDTH, Game.HEIGHT);
         gc.drawImage(leftHouseImage, 0, 580, 550, 300);
@@ -40,7 +40,7 @@ public class AnimationLoop extends AnimationTimer {
 
         updateGame();
 
-        // Drawing game scenes
+        // Draw the game scene
         mechan.render(gc);
         mage.render(gc);
 
@@ -50,14 +50,14 @@ public class AnimationLoop extends AnimationTimer {
     }
 
     private void updateGame(){
-        // If the game ends, stop receiving keystroke input from the player
+        // Stop receiving player key inputs if the game ends
         if (mechan.getHealth() <= 0 || mage.getHealth() <= 0) {
             gameEnded = true;
             keysPressedMechan.clear();
             keysPressedMage.clear();
         }
 
-        // Update game status based on keystroke status
+        // Update the game state based on key inputs
         if (!gameEnded) {
             mechan.update(keysPressedMechan);
             mage.update(keysPressedMage);
@@ -65,14 +65,13 @@ public class AnimationLoop extends AnimationTimer {
     }
 
     private void drawEndGameOverlay() {
-        gc.setFill(Color.rgb(0, 0, 0, 0.5)); // Set translucent black
-        gc.fillRect(0, 0, Game.WIDTH, Game.HEIGHT); // Drawing Rectangles
+        gc.setFill(Color.rgb(0, 0, 0, 0.5)); // Set semi-transparent black color
+        gc.fillRect(0, 0, Game.WIDTH, Game.HEIGHT); // Draw rectangle
 
         String winner = mechan.getHealth() <= 0 ? "Mage" : "Mechan";
-        gc.setFill(Color.WHITE); // Setting the text colour
-        gc.setFont(Font.font("Arial", FontWeight.BOLD, 60)); // Setting fonts and sizes
-        gc.setTextAlign(TextAlignment.CENTER); // Setting text centre alignment
-        gc.fillText("Winner: " + winner, Game.WIDTH / 2, Game.HEIGHT / 2); // 显示胜利者信息
+        gc.setFill(Color.WHITE); // Set text color
+        gc.setFont(Font.font("Arial", FontWeight.BOLD, 60)); // Set font and size
+        gc.setTextAlign(TextAlignment.CENTER); // Set text alignment to center
+        gc.fillText("Winner: " + winner, Game.WIDTH / 2, Game.HEIGHT / 2); // Display winner information
     }
 }
-

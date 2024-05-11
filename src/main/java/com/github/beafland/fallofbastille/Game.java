@@ -1,7 +1,5 @@
 package com.github.beafland.fallofbastille;
 
-import com.github.beafland.fallofbastille.character.Mage;
-import com.github.beafland.fallofbastille.character.Mechan;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
@@ -14,8 +12,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -24,14 +20,17 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+import com.github.beafland.fallofbastille.character.Mage;
+import com.github.beafland.fallofbastille.character.Mechan;
+
 public class Game extends Application implements GameEventListener {
-    //Windows size
+    // Windows size
     public static final int WIDTH = 1900;
     public static final int HEIGHT = 1000;
-    //Players
+    // Players
     public static Mechan mechan;
     public static Mage mage;
-    // Add a collection to track key presses
+    // Collection to track pressed keys
     private final Set<KeyCode> keysPressedMechan = new HashSet<>();
     private final Set<KeyCode> keysPressedMage = new HashSet<>();
     private GameClient client;
@@ -47,16 +46,10 @@ public class Game extends Application implements GameEventListener {
 
     @Override
     public void start(Stage primaryStage) throws IOException {
-        String server = "127.0.0.1";
         this.primaryStage = primaryStage;
-
-        //client = new GameClient(server, 5555, this);
-        //this.playerRole = client.getPlayerRole();
-        //System.out.println("Assigned role: " + playerRole);
         primaryStage.setTitle("Fall Of Bastille");
         initMenu();
     }
-
 
     public void initMenu() {
         ImageView imageView = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/cover.png"))));
@@ -76,7 +69,6 @@ public class Game extends Application implements GameEventListener {
         joinButton.setPrefSize(200, 100);
         joinButton.setOnAction(event -> {
             joinGame(); // Join the existing server
-            showRoleSelection(primaryStage, false); // Show role selection UI
         });
 
         VBox vbox = new VBox(20);
@@ -90,19 +82,6 @@ public class Game extends Application implements GameEventListener {
         primaryStage.show();
     }
 
-    public void updateOpponentRole(String role) {
-        Platform.runLater(() -> {
-            if (role.equals("Mechan")) {
-                rbMechan.setDisable(true);
-                rbMechan.setTextFill(Color.GRAY); // Set the font color to gray
-            } else if (role.equals("Mage")) {
-                rbMage.setDisable(true);
-                rbMage.setTextFill(Color.GRAY); // Set the font color to gray
-            }
-        });
-    }
-
-
     private void startServer() {
         try {
             GameServer server = new GameServer(5555);
@@ -115,25 +94,25 @@ public class Game extends Application implements GameEventListener {
     }
 
     private void joinGame() {
-        // 弹出对话框让用户输入服务器地址
+        // Display a dialog box for users to enter the server address
         TextInputDialog dialog = new TextInputDialog("127.0.0.1");
         dialog.setTitle("Join a Game");
         dialog.setHeaderText("Enter Host IP Address");
         dialog.setContentText("IP Address:");
 
-        // 传统的阻塞式模态对话框
+        // Traditional blocking modal dialog
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(hostIp -> {
             try {
-                this.client = new GameClient(hostIp, 5555, this);  // 使用用户输入的IP地址创建客户端
-                showRoleSelection(primaryStage, false);  // 显示角色选择界面
+                this.client = new GameClient(hostIp, 5555, this);  // Create a client with the user-entered IP address
+                showRoleSelection(primaryStage, false);  // Display the role selection interface
             } catch (IOException e) {
                 e.printStackTrace();
                 showAlert("Connection Error", "Failed to connect to server: " + e.getMessage());
             }
         });
     }
-    
+
     private void showAlert(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
@@ -142,46 +121,34 @@ public class Game extends Application implements GameEventListener {
         alert.showAndWait();
     }
 
-
     public void showRoleSelection(Stage primaryStage, boolean isHost) {
         ToggleGroup group = new ToggleGroup();
-//      Mechan button
         ImageView mechanImage = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/mechan/mechanician.png"))));
         ToggleButton mechanButton = new ToggleButton();
         mechanButton.setGraphic(mechanImage);
         mechanButton.setToggleGroup(group);
 
-//      Mage button
         ImageView mageImage = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/Mage/mage.png"))));
         ToggleButton mageButton = new ToggleButton();
         mageButton.setGraphic(mageImage);
         mageButton.setToggleGroup(group);
 
-        Label waitingLabel = new Label();
-        waitingLabel.setFont(Font.font("Arial", FontWeight.BOLD, 60)); // setting text
-        waitingLabel.setAlignment(Pos.CENTER); // Alignment text
-
-        // Set the ToggleGroup's event listener to send the "RoleSelected" message when a role is selected.
+        // Set an event listener for the ToggleGroup to send a "RoleSelected" message after a role is selected
         group.selectedToggleProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == mechanButton) {
                 playerRole = "Mechan";
-                mageButton.setDisable(true); // Disabling the Mechan button when the Mage button is selected
+                mageButton.setDisable(true); // Disable the Mage button after Mechan is selected
             } else if (newValue == mageButton) {
                 playerRole = "Mage";
-                mechanButton.setDisable(true); // Disabling the Mage button when the Mechan button is selected
+                mechanButton.setDisable(true); // Disable the Mechan button after Mage is selected
             }
-            client.send("RoleSelected:" + playerRole); // Notify the server that a role has been selected
-            client.send("Ready:" + playerRole); // Notify the server that the client is ready
-            waitingLabel.setText("Waiting for connection...."); // Update waiting for news
+            client.send("RoleSelected:" + playerRole); // Notify the server that the role has been selected
+            client.send("Ready:" + playerRole); // Notify the server that this client is ready
         });
 
-        HBox hbox = new HBox(20); // Layout with VBox
-        hbox.setAlignment(Pos.CENTER);
-        hbox.getChildren().addAll(mageButton, mechanButton);
-
-        VBox vbox = new VBox(20);
+        HBox vbox = new HBox(20); // Use VBox layout
         vbox.setAlignment(Pos.CENTER);
-        vbox.getChildren().addAll(hbox, waitingLabel);
+        vbox.getChildren().addAll(mageButton, mechanButton);
 
         StackPane root = new StackPane(vbox);
         root.setBackground(new Background(new BackgroundFill(Color.DARKGREY, null, null)));
@@ -190,8 +157,8 @@ public class Game extends Application implements GameEventListener {
     }
 
     public void initGame() {
-        //init players
         initPlayer();
+        System.out.println(playerRole);
         Canvas canvas = new Canvas(WIDTH, HEIGHT);
         StackPane root = new StackPane(canvas);
 
@@ -201,8 +168,8 @@ public class Game extends Application implements GameEventListener {
         Scene scene = new Scene(root, WIDTH, HEIGHT + 100);
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
-        // Setting up keyboard event listeners to control player movement
-        canvas.setFocusTraversable(true); // Enabling canvas to receive focus and keyboard events
+        // Set keyboard event listeners to control player movement
+        canvas.setFocusTraversable(true); // Enable canvas to receive focus and keyboard events
 
         canvas.setOnKeyPressed(event -> {
             KeyCode code = event.getCode();
@@ -216,7 +183,7 @@ public class Game extends Application implements GameEventListener {
             }
 
             if (!playerRole.equals("local"))
-                client.send("KeyPressed:" + code);  // Send key press message to server
+                client.send("KeyPressed:" + code);  // Send key press information to the server
         });
 
         canvas.setOnKeyReleased(event -> {
@@ -231,11 +198,10 @@ public class Game extends Application implements GameEventListener {
             }
 
             if (!playerRole.equals("local"))
-                client.send("KeyReleased:" + code.toString());  // Send key press message to server
+                client.send("KeyReleased:" + code.toString());  // Send key release information to the server
 
             onKeyReleased(code);
         });
-
 
         AnimationLoop loop = new AnimationLoop(gc, keysPressedMechan, keysPressedMage);
         loop.start();
@@ -244,8 +210,8 @@ public class Game extends Application implements GameEventListener {
     }
 
     public void initPlayer() {
-        mechan = new Mechan(1500, HEIGHT / 2); // Initialising the Player Character
-        mage = new Mage(50, HEIGHT / 2);
+        mechan = new Mechan(1500, HEIGHT / 2); // Initialize player characters
+        mage = new Mage(50, HEIGHT / 2); // Initialize player characters
 
         mechan.setEnemy(mage);
         mage.setEnemy(mechan);
@@ -253,7 +219,6 @@ public class Game extends Application implements GameEventListener {
 
     @Override
     public void onKeyPressed(KeyCode key) {
-        //rewrite on Key Pressed logic
         if (key == KeyCode.UP) {
             if (!keysPressedMechan.contains(KeyCode.UP)) {
                 mechan.Jump();
@@ -269,12 +234,11 @@ public class Game extends Application implements GameEventListener {
         } else if (key == KeyCode.A || key == KeyCode.D || key == KeyCode.G) {
             keysPressedMage.add(key);
         }
-
     }
 
     @Override
     public void onKeyReleased(KeyCode key) {
-        // Handling key release logic
+        // Process key release logic
         if (key == KeyCode.UP || key == KeyCode.DOWN || key == KeyCode.LEFT || key == KeyCode.RIGHT || key == KeyCode.SPACE) {
             keysPressedMechan.remove(key);
         } else if (key == KeyCode.W || key == KeyCode.S || key == KeyCode.A || key == KeyCode.D || key == KeyCode.G) {
@@ -301,7 +265,4 @@ public class Game extends Application implements GameEventListener {
     public void updateRole(String role) {
         this.playerRole = role;
     }
-
 }
-
-

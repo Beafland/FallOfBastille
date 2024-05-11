@@ -9,7 +9,9 @@ public class HealthBarUI {
     private double fakeHealth;
 
     public HealthBarUI(int fullHealth) {
-        fakeHealth = currHealth = this.fullHealth = fullHealth;
+        this.fullHealth = fullHealth;
+        this.currHealth = fullHealth;
+        this.fakeHealth = fullHealth;
     }
 
     public void draw(GraphicsContext gc, double health, boolean rightCorner) {
@@ -18,40 +20,44 @@ public class HealthBarUI {
         int x = 50;
         int y = 10;
 
+        // Gradually decrease the current health to simulate damage effect
         if (currHealth > health) {
             currHealth -= 0.5;
         }
+        // Gradually decrease the fake health to give a delayed health bar effect
         if (fakeHealth > currHealth) {
             fakeHealth -= 0.2;
         }
 
+        // Calculate the width of the health bar based on current health
         double barWidth = width * (currHealth / fullHealth);
+        // Calculate the width of the delayed health effect
         double fakeBarWidth = width * (fakeHealth / fullHealth);
 
         if (rightCorner) {
-            gc.save(); // Save the current canvas state
-            gc.translate(1350 + width, y); // Shifts the drawing start point to the right by the width of the image.
-            gc.scale(-1, 1); // Horizontal Flip
+            gc.save(); // Save the current state of the canvas
+            gc.translate(1350 + width, y); // Move the drawing origin to the right by the width of the bar
+            gc.scale(-1, 1); // Flip horizontally
         }
 
-        // Drawing the bottom background
+        // Draw the background bar
         gc.setFill(Color.LIGHTGRAY);
         gc.fillRect(x, y, width, height);
 
-        // Drawing the bottom health bar
+        // Draw the delayed health bar effect
         gc.setFill(Color.DARKRED);
         gc.fillRect(x, y, fakeBarWidth, height);
-        // Mapping Health Strips
+
+        // Draw the actual health bar
         gc.setFill(Color.RED);
         gc.fillRect(x, y, barWidth, height);
 
-        // Drawing Borders
+        // Draw the border around the health bar
         gc.setStroke(Color.BLACK);
         gc.strokeRect(x, y, width, height);
 
         if (rightCorner) {
-            gc.restore(); // Restore the canvas state to the most recent save point
+            gc.restore(); // Restore the canvas state to the last saved point
         }
-
     }
 }
