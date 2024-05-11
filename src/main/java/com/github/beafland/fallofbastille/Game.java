@@ -52,7 +52,8 @@ public class Game extends Application implements GameEventListener {
     }
 
     public void initMenu() {
-        ImageView imageView = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/cover.png"))));
+    	ImageView imageView = new ImageView(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/images/cover.png"))));
+
 
         Button startButton = new Button("Start Local Game");
         startButton.setPrefSize(200, 100);
