@@ -22,3 +22,5 @@ A two-player fighting game based on the JavaFX framework, currently featuring tw
 **SPACE**: Shoot!
 
 All character have double jump!
+
+## Hint: If you find that your character moves slowly (like slow motion), #**_play on a better computer_**!
