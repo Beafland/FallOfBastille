@@ -30,7 +30,7 @@ public class HealthBarUI {
 
         if (rightCorner) {
             gc.save(); // Save the current canvas state
-            gc.translate(1450 + width, y); // Shifts the drawing start point to the right by the width of the image.
+            gc.translate(1350 + width, y); // Shifts the drawing start point to the right by the width of the image.
             gc.scale(-1, 1); // Horizontal Flip
         }
 

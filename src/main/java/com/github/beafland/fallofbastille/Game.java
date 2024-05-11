@@ -26,7 +26,7 @@ import java.util.Set;
 
 public class Game extends Application implements GameEventListener {
     //Windows size
-    public static final int WIDTH = 2000;
+    public static final int WIDTH = 1900;
     public static final int HEIGHT = 1000;
     //Players
     public static Mechan mechan;
